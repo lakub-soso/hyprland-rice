@@ -1,0 +1,44 @@
+// -*- mode: jsonc -*-
+{
+    // Only show the bar on the main (Philips) monitor, by port name.
+    // Waybar can't match a partial description (it needs make+model+serial,
+    // which we keep out of the repo), so if you move the Philips to another
+    // port, update this — check with `hyprctl monitors`.
+    "output": "HDMI-A-3",
+
+    "layer": "top",
+    "position": "top",
+    "height": 30,
+    "spacing": 4,
+
+    "modules-left": ["hyprland/workspaces", "hyprland/submap"],
+    "modules-center": ["hyprland/window"],
+    "modules-right": ["pulseaudio", "network", "cpu", "memory", "tray", "clock"],
+
+    "hyprland/workspaces": {
+        // Show workspaces from every monitor, since this is the only bar
+        "all-outputs": true
+    },
+    "hyprland/window": {
+        "max-length": 60,
+        "separate-outputs": false
+    },
+    "tray": { "spacing": 10 },
+    "clock": {
+        "format": "{:%a %d %b  %H:%M}",
+        "tooltip-format": "<tt>{calendar}</tt>"
+    },
+    "cpu": { "format": "CPU {usage}%" },
+    "memory": { "format": "RAM {}%" },
+    "network": {
+        "format-wifi": "{essid} ({signalStrength}%)",
+        "format-ethernet": "{ipaddr}",
+        "format-disconnected": "offline",
+        "tooltip-format": "{ifname} via {gwaddr}"
+    },
+    "pulseaudio": {
+        "format": "VOL {volume}%",
+        "format-muted": "muted",
+        "on-click": "pavucontrol"
+    }
+}

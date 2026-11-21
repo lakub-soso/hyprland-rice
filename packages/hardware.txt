@@ -1,0 +1,12 @@
+# Machine-specific packages for THIS box (AMD CPU + NVIDIA GPU, btrfs, EFI).
+# Only installed with: ./install.sh packages --hardware
+# Copy/edit this file per machine.
+amd-ucode
+nvidia-open
+libva-nvidia-driver
+linux-headers
+btrfs-progs
+efibootmgr
+zram-generator
+smartmontools
+firewalld

@@ -1,0 +1,64 @@
+# Official-repo packages that make up the rice (one per line, # for comments).
+# Installed with: pacman -S --needed
+
+# --- Compositor & session ---
+hyprland
+hyprpaper
+hyprpolkitagent
+uwsm
+sddm
+xdg-desktop-portal-hyprland
+xdg-desktop-portal-gtk
+xdg-utils
+qt5-wayland
+qt6-wayland
+
+# --- Bar, launcher, notifications ---
+waybar
+wofi
+dunst
+
+# --- Apps ---
+kitty
+dolphin
+firefox
+neovim
+htop
+telegram-desktop
+bitwarden
+
+# --- Screenshots / clipboard ---
+grim
+slurp
+wl-clipboard
+
+# --- Audio ---
+pipewire
+pipewire-alsa
+pipewire-jack
+pipewire-pulse
+wireplumber
+gst-plugin-pipewire
+libpulse
+pavucontrol        # opened by clicking the waybar volume module
+
+# --- Network / bluetooth ---
+networkmanager
+network-manager-applet
+bluez
+bluez-utils
+
+# --- Secrets ---
+gnome-keyring
+seahorse
+
+# --- Fonts ---
+noto-fonts
+noto-fonts-cjk
+noto-fonts-emoji
+ttf-dejavu
+ttf-liberation
+
+# --- Used by keybinds in hyprland.lua (not installed yet) ---
+brightnessctl
+playerctl
