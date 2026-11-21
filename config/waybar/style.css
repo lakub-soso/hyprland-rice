@@ -1,0 +1,80 @@
+/* waybar style — Catppuccin Macchiato. Palette: ../theme/macchiato.css */
+@import url("../theme/macchiato.css");
+
+* {
+    font-family: "Noto Sans", sans-serif;
+    font-size: 13px;
+    min-height: 0;
+    border: none;
+    border-radius: 0;
+}
+
+window#waybar {
+    background-color: alpha(@crust, 0.9);
+    color: @text;
+}
+
+tooltip {
+    background-color: @base;
+    border: 1px solid @accent;
+    border-radius: 8px;
+}
+tooltip label { color: @text; }
+
+/* --- left: workspaces --- */
+#workspaces {
+    margin: 4px 6px;
+    padding: 0 4px;
+    background-color: @surface0;
+    border-radius: 8px;
+}
+#workspaces button {
+    padding: 0 8px;
+    color: @overlay1;
+    background: transparent;
+    border-radius: 6px;
+}
+#workspaces button:hover {
+    background: @surface1;
+    color: @text;
+    box-shadow: none;
+}
+#workspaces button.active {
+    color: @crust;
+    background-color: @accent;
+}
+#workspaces button.urgent {
+    color: @crust;
+    background-color: @red;
+}
+
+#submap {
+    margin: 4px 0;
+    padding: 0 10px;
+    border-radius: 8px;
+    color: @crust;
+    background-color: @peach;
+}
+
+/* --- centre: window title --- */
+#window {
+    color: @subtext1;
+}
+window#waybar.empty #window { background: transparent; }
+
+/* --- right: status modules, each a pill --- */
+#pulseaudio, #network, #cpu, #memory, #tray, #clock {
+    margin: 4px 3px;
+    padding: 0 10px;
+    border-radius: 8px;
+    background-color: @surface0;
+}
+#clock      { color: @accent; margin-right: 6px; font-weight: bold; }
+#pulseaudio { color: @blue; }
+#pulseaudio.muted { color: @overlay0; }
+#network    { color: @teal; }
+#network.disconnected { color: @red; }
+#cpu        { color: @green; }
+#memory     { color: @yellow; }
+
+#tray > .needs-attention { background-color: @red; }

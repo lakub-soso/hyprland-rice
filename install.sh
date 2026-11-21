@@ -7,14 +7,23 @@
 #   ./install.sh link         # symlink config/* into ~/.config (backs up existing)
 #   ./install.sh unlink       # remove symlinks that point into this repo
 #   ./install.sh services     # enable system/user services
+#   ./install.sh dirs         # create ~/Pictures, ~/Videos, … (xdg-user-dirs)
+#   ./install.sh system       # copy system/ into / with sudo (e.g. SDDM theme)
+#   ./install.sh theme        # apply dark-mode gsettings (dconf)
 #   ./install.sh diff         # show packages installed but not tracked (and vice versa)
 #
 # Add DRY_RUN=1 to print what would happen without changing anything.
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CONFIG_SRC="$REPO/config"
 CONFIG_DST="${XDG_CONFIG_HOME:-$HOME/.config}"
+DATA_DST="${XDG_DATA_HOME:-$HOME/.local/share}"
+# Repo dir -> where its files get symlinked
+LINK_TREES=("$REPO/config:$CONFIG_DST" "$REPO/data:$DATA_DST")
+KDE_SCHEME="CatppuccinMacchiatoMauve"
+ICON_THEME="Papirus-Dark"
+GTK_THEME="catppuccin-macchiato-mauve-standard+default"   # from catppuccin-gtk-theme-macchiato
+FOLDER_COLOR="cat-macchiato-mauve"   # from papirus-folders-catppuccin-git
 DRY_RUN="${DRY_RUN:-0}"
 
 log()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
@@ -50,37 +59,78 @@ cmd_packages() {
     fi
 }
 
-# Link every top-level entry of config/<app>/<file> individually, so apps can
-# still write their own untracked files next to ours inside ~/.config/<app>.
+# Link every file individually (config/<app>/<file> -> ~/.config/<app>/<file>,
+# data/... -> ~/.local/share/...), so apps can still write their own untracked
+# files next to ours.
 cmd_link() {
-    local backup_dir="$CONFIG_DST/.rice-backup-$(date +%Y%m%d-%H%M%S)"
-    local src rel dst
-    while IFS= read -r -d '' src; do
-        rel="${src#"$CONFIG_SRC"/}"
-        dst="$CONFIG_DST/$rel"
-        if [[ -L $dst && $(readlink -f "$dst") == "$(readlink -f "$src")" ]]; then
-            continue  # already linked
-        fi
-        if [[ -e $dst || -L $dst ]]; then
-            log "Backing up $dst -> $backup_dir/$rel"
-            run mkdir -p "$(dirname "$backup_dir/$rel")"
-            run mv "$dst" "$backup_dir/$rel"
-        fi
-        run mkdir -p "$(dirname "$dst")"
-        run ln -s "$src" "$dst"
-        log "Linked $rel"
-    done < <(find "$CONFIG_SRC" -type f -print0)
+    local stamp; stamp="$(date +%Y%m%d-%H%M%S)"
+    local tree src_root dst_root backup_dir src rel dst
+    for tree in "${LINK_TREES[@]}"; do
+        src_root="${tree%%:*}"; dst_root="${tree#*:}"
+        [[ -d $src_root ]] || continue
+        backup_dir="$dst_root/.rice-backup-$stamp"
+        while IFS= read -r -d '' src; do
+            rel="${src#"$src_root"/}"
+            dst="$dst_root/$rel"
+            if [[ -L $dst && $(readlink -f "$dst") == "$(readlink -f "$src")" ]]; then
+                continue  # already linked
+            fi
+            if [[ -e $dst || -L $dst ]]; then
+                log "Backing up $dst -> $backup_dir/$rel"
+                run mkdir -p "$(dirname "$backup_dir/$rel")"
+                run mv "$dst" "$backup_dir/$rel"
+            fi
+            run mkdir -p "$(dirname "$dst")"
+            run ln -s "$src" "$dst"
+            log "Linked $dst"
+        done < <(find "$src_root" -type f -print0)
+    done
 }
 
 cmd_unlink() {
-    local src dst
+    local tree src_root dst_root src dst
+    for tree in "${LINK_TREES[@]}"; do
+        src_root="${tree%%:*}"; dst_root="${tree#*:}"
+        [[ -d $src_root ]] || continue
+        while IFS= read -r -d '' src; do
+            dst="$dst_root/${src#"$src_root"/}"
+            if [[ -L $dst && $(readlink -f "$dst") == "$(readlink -f "$src")" ]]; then
+                run rm "$dst"
+                log "Unlinked $dst"
+            fi
+        done < <(find "$src_root" -type f -print0)
+    done
+}
+
+# System files: system/<path> is COPIED to /<path> (root-owned, 644). Copied
+# rather than symlinked because system daemons (e.g. sddm) can't read $HOME.
+# Re-run after editing anything under system/. Unchanged files are skipped;
+# a differing existing file is kept as <file>.rice-bak first.
+cmd_system() {
+    local root="$REPO/system" src dst
+    [[ -d $root ]] || return 0
     while IFS= read -r -d '' src; do
-        dst="$CONFIG_DST/${src#"$CONFIG_SRC"/}"
-        if [[ -L $dst && $(readlink -f "$dst") == "$(readlink -f "$src")" ]]; then
-            run rm "$dst"
-            log "Unlinked $dst"
+        dst="/${src#"$root"/}"
+        if [[ -f $dst ]] && cmp -s "$src" "$dst"; then
+            continue
         fi
-    done < <(find "$CONFIG_SRC" -type f -print0)
+        if [[ -e $dst ]]; then
+            log "Backing up $dst -> $dst.rice-bak"
+            run sudo cp -a "$dst" "$dst.rice-bak"
+        fi
+        log "Installing $dst (needs sudo)"
+        run sudo install -Dm644 "$src" "$dst"
+    done < <(find "$root" -type f -print0)
+
+    # Wallpapers also go somewhere the sddm user can read (login background).
+    local wp dst_wp
+    for wp in "$REPO"/data/wallpapers/*; do
+        [[ -f $wp ]] || continue
+        dst_wp="/usr/share/backgrounds/hyprland-rice/$(basename "$wp")"
+        [[ -f $dst_wp ]] && cmp -s "$wp" "$dst_wp" && continue
+        log "Installing $dst_wp (needs sudo)"
+        run sudo install -Dm644 "$wp" "$dst_wp"
+    done
 }
 
 cmd_services() {
@@ -88,6 +138,92 @@ cmd_services() {
     run sudo systemctl enable NetworkManager.service bluetooth.service sddm.service
     run systemctl --user enable pipewire.socket pipewire-pulse.socket wireplumber.service \
         gnome-keyring-daemon.socket
+}
+
+# Standard home folders (Desktop, Documents, Downloads, Music, Pictures, Public,
+# Templates, Videos) + ~/.config/user-dirs.dirs, as Plasma would set up.
+cmd_dirs() {
+    if ! command -v xdg-user-dirs-update >/dev/null; then
+        warn "xdg-user-dirs not installed — run ./install.sh packages first"
+        return
+    fi
+    log "Creating XDG user folders"
+    run xdg-user-dirs-update
+
+    # Dolphin builds its sidebar ("Places") once, on first launch, from the
+    # folders that existed then, and never adds new ones. If it was created
+    # before the folders above, back it up so Dolphin regenerates the defaults.
+    local places="$DATA_DST/user-places.xbel" pictures
+    pictures="$(xdg-user-dir PICTURES 2>/dev/null)"
+    if [[ -f $places && -n $pictures ]] && ! grep -q "file://$pictures\"" "$places"; then
+        log "Dolphin's Places predate the XDG folders — backing up so it regenerates"
+        run mv "$places" "$places.bak-$(date +%Y%m%d-%H%M%S)"
+    fi
+}
+
+# Settings that live in dconf rather than files. GTK4/libadwaita apps, Firefox,
+# Electron apps and xdg portals read color-scheme from here to pick dark mode.
+cmd_theme() {
+    # Papirus folder colour. papirus-folders edits /usr/share/icons, hence sudo;
+    # skipped when already applied. The package's pacman hook keeps it applied
+    # across papirus-icon-theme updates.
+    if command -v papirus-folders >/dev/null; then
+        if papirus-folders -l --theme "$ICON_THEME" 2>/dev/null | grep -qE "^\s*>\s*$FOLDER_COLOR\s*$"; then
+            log "Papirus folders already $FOLDER_COLOR"
+        else
+            log "Setting Papirus folders to $FOLDER_COLOR (needs sudo)"
+            run sudo papirus-folders -C "$FOLDER_COLOR" --theme "$ICON_THEME"
+        fi
+    else
+        warn "papirus-folders not installed — run ./install.sh packages first"
+    fi
+
+    log "Applying dark theme settings (gsettings)"
+    run gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
+    run gsettings set org.gnome.desktop.interface gtk-theme    "$GTK_THEME"
+    run gsettings set org.gnome.desktop.interface icon-theme   "$ICON_THEME"
+    run gsettings set org.gnome.desktop.interface font-name    'Noto Sans 11'
+
+    # libadwaita apps ignore gtk-theme; they only load ~/.config/gtk-4.0/gtk.css.
+    # Link the theme's GTK4 CSS + assets there (per catppuccin/gtk's README).
+    # These point into /usr/share/themes, so they're not tracked in the repo.
+    local gtk4_src="/usr/share/themes/$GTK_THEME/gtk-4.0" item
+    if [[ -d $gtk4_src ]]; then
+        log "Linking $GTK_THEME GTK4 CSS for libadwaita apps"
+        run mkdir -p "$CONFIG_DST/gtk-4.0"
+        for item in assets gtk.css gtk-dark.css; do
+            [[ -e $gtk4_src/$item ]] && run ln -sfn "$gtk4_src/$item" "$CONFIG_DST/gtk-4.0/$item"
+        done
+    else
+        warn "$GTK_THEME not installed — run ./install.sh packages first"
+    fi
+
+    # KDE apps (Dolphin…) ignore the qt6ct palette. They need (1) the colours in
+    # kdeglobals, and (2) the app's own colour scheme pointed at our .colors file
+    # (otherwise KColorSchemeManager resets them to light). kdeglobals is merged
+    # key-by-key rather than symlinked, because KDE apps write their own
+    # settings into it.
+    local scheme="$REPO/data/color-schemes/$KDE_SCHEME.colors"
+    if ! command -v kwriteconfig6 >/dev/null; then
+        warn "kwriteconfig6 not found (comes with kconfig) — skipping KDE colours"
+        return
+    fi
+    log "Merging $KDE_SCHEME into kdeglobals"
+    local line group="" key val
+    while IFS= read -r line; do
+        [[ $line =~ ^\[(.*)\]$ ]] && { group="${BASH_REMATCH[1]}"; continue; }
+        [[ $line =~ ^([^#=][^=]*)=(.*)$ && -n $group ]] || continue
+        key="${BASH_REMATCH[1]}"; val="${BASH_REMATCH[2]}"
+        # "--" so values like "-1" aren't parsed as options
+        run kwriteconfig6 --file kdeglobals --group "$group" --key "$key" -- "$val"
+    done < "$scheme"
+    run kwriteconfig6 --file kdeglobals --group Icons --key Theme "$ICON_THEME"
+
+    log "Pointing KDE apps at the $KDE_SCHEME colour scheme"
+    local app
+    for app in dolphin; do
+        run kwriteconfig6 --file "${app}rc" --group UiSettings --key ColorScheme "$KDE_SCHEME"
+    done
 }
 
 cmd_diff() {
@@ -98,19 +234,22 @@ cmd_diff() {
     echo "Installed but NOT tracked (add to a list, or ignore):"
     comm -23 <(pacman -Qqe | grep -Ev "$ignore" | sort) <(echo "$tracked") | sed 's/^/  + /'
     echo "Tracked but NOT installed:"
-    comm -13 <(pacman -Qqe | sort) <(echo "$tracked") | sed 's/^/  - /'
+    comm -13 <(pacman -Qq | sort) <(echo "$tracked") | sed 's/^/  - /'  # -Qq: deps count as installed
 }
 
 main() {
     local cmd="${1:-all}"; shift || true
     case "$cmd" in
-        all)      cmd_packages "$@"; cmd_link; cmd_services ;;
+        all)      cmd_packages "$@"; cmd_link; cmd_dirs; cmd_system; cmd_services; cmd_theme ;;
         packages) cmd_packages "$@" ;;
         link)     cmd_link ;;
         unlink)   cmd_unlink ;;
         services) cmd_services ;;
+        dirs)     cmd_dirs ;;
+        system)   cmd_system ;;
+        theme)    cmd_theme ;;
         diff)     cmd_diff ;;
-        *) sed -n '2,13p' "$0"; exit 1 ;;
+        *) sed -n '2,16p' "$0"; exit 1 ;;
     esac
 }
 main "$@"

@@ -1,0 +1,35 @@
+# dunst config — Catppuccin Macchiato. `man 5 dunst`
+[global]
+    monitor = 0
+    follow = mouse
+    width = 350
+    height = (0, 300)
+    origin = top-right
+    offset = (20, 50)
+    padding = 12
+    horizontal_padding = 14
+    gap_size = 6
+    frame_width = 2
+    corner_radius = 10
+    separator_color = frame
+    font = Noto Sans 11
+    icon_theme = Papirus-Dark, Adwaita
+    max_icon_size = 48
+
+    # left-click: run the default action (e.g. annotate a screenshot), then close
+    mouse_left_click = do_action, close_current
+    mouse_middle_click = close_current
+    mouse_right_click = close_all
+
+    background = "#24273a"
+    foreground = "#cad3f5"
+    frame_color = "#c6a0f6"
+    highlight = "#c6a0f6"
+
+[urgency_low]
+    frame_color = "#6e738d"
+
+[urgency_critical]
+    background = "#24273a"
+    foreground = "#cad3f5"
+    frame_color = "#f5a97f"

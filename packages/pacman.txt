@@ -10,8 +10,15 @@ sddm
 xdg-desktop-portal-hyprland
 xdg-desktop-portal-gtk
 xdg-utils
+xdg-user-dirs      # creates ~/Pictures, ~/Videos, … + user-dirs.dirs
 qt5-wayland
 qt6-wayland
+
+# --- Theming (dark + Catppuccin Macchiato) ---
+qt6ct              # Qt apps (dolphin, telegram) palette, see config/qt6ct
+papirus-icon-theme # icon theme (Papirus-Dark); Catppuccin folders come from aur.txt
+breeze-icons       # fallback icons for KDE apps
+breeze             # Breeze Qt widget style — KDE apps (Dolphin sidebar) assume it
 
 # --- Bar, launcher, notifications ---
 waybar
@@ -31,6 +38,10 @@ bitwarden
 grim
 slurp
 wl-clipboard
+hyprpicker         # freezes the screen while snipping (scripts/snip.sh)
+satty              # screenshot annotation editor (click the snip notification)
+hyprlock           # lock screen (SUPER + L), config/hypr/hyprlock.conf
+fastfetch
 
 # --- Audio ---
 pipewire
@@ -62,3 +73,5 @@ ttf-liberation
 # --- Used by keybinds in hyprland.lua (not installed yet) ---
 brightnessctl
 playerctl
+
+telegram-desktop

@@ -1,0 +1,136 @@
+# KDE colour scheme — Catppuccin Macchiato, mauve accent.
+# Linked to ~/.local/share/color-schemes/. `./install.sh theme` merges it into
+# ~/.config/kdeglobals and selects it in Dolphin (KDE apps ignore qt6ct).
+# Values are R,G,B. Palette: https://catppuccin.com/palette
+
+[General]
+ColorScheme=CatppuccinMacchiatoMauve
+Name=Catppuccin Macchiato Mauve
+font=Noto Sans,11,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+fixed=DejaVu Sans Mono,11,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+
+[KDE]
+contrast=4
+widgetStyle=Breeze
+
+[ColorEffects:Disabled]
+Color=30,32,48
+ColorAmount=0.3
+ColorEffect=2
+ContrastAmount=0.1
+ContrastEffect=0
+IntensityAmount=-1
+IntensityEffect=0
+
+[ColorEffects:Inactive]
+ChangeSelectionColor=false
+Enable=false
+
+# --- Content areas: file view, lists, text fields ---
+[Colors:View]
+BackgroundNormal=36,39,58
+BackgroundAlternate=30,32,48
+ForegroundNormal=202,211,245
+ForegroundInactive=165,173,203
+ForegroundActive=198,160,246
+ForegroundLink=138,173,244
+ForegroundVisited=198,160,246
+ForegroundNegative=237,135,150
+ForegroundNeutral=245,169,127
+ForegroundPositive=166,218,149
+DecorationFocus=198,160,246
+DecorationHover=198,160,246
+
+# --- Window chrome: toolbars, sidebar, status bar ---
+[Colors:Window]
+BackgroundNormal=30,32,48
+BackgroundAlternate=24,25,38
+ForegroundNormal=202,211,245
+ForegroundInactive=165,173,203
+ForegroundActive=198,160,246
+ForegroundLink=138,173,244
+ForegroundVisited=198,160,246
+ForegroundNegative=237,135,150
+ForegroundNeutral=245,169,127
+ForegroundPositive=166,218,149
+DecorationFocus=198,160,246
+DecorationHover=198,160,246
+
+[Colors:Header]
+BackgroundNormal=24,25,38
+BackgroundAlternate=30,32,48
+ForegroundNormal=202,211,245
+ForegroundInactive=165,173,203
+ForegroundActive=198,160,246
+ForegroundLink=138,173,244
+ForegroundVisited=198,160,246
+ForegroundNegative=237,135,150
+ForegroundNeutral=245,169,127
+ForegroundPositive=166,218,149
+DecorationFocus=198,160,246
+DecorationHover=198,160,246
+
+[Colors:Button]
+BackgroundNormal=54,58,79
+BackgroundAlternate=73,77,100
+ForegroundNormal=202,211,245
+ForegroundInactive=165,173,203
+ForegroundActive=198,160,246
+ForegroundLink=138,173,244
+ForegroundVisited=198,160,246
+ForegroundNegative=237,135,150
+ForegroundNeutral=245,169,127
+ForegroundPositive=166,218,149
+DecorationFocus=198,160,246
+DecorationHover=198,160,246
+
+# Deep mauve (mauve blended 40% over base) with light text, not pastel mauve
+# with dark text: Breeze draws selected sidebar items with the *normal* (light)
+# text colour, which is unreadable on pastel mauve.
+[Colors:Selection]
+BackgroundNormal=101,87,133
+BackgroundAlternate=95,99,134
+ForegroundNormal=202,211,245
+ForegroundInactive=165,173,203
+ForegroundActive=183,189,248
+ForegroundLink=138,173,244
+ForegroundVisited=198,160,246
+ForegroundNegative=237,135,150
+ForegroundNeutral=245,169,127
+ForegroundPositive=166,218,149
+DecorationFocus=198,160,246
+DecorationHover=198,160,246
+
+[Colors:Tooltip]
+BackgroundNormal=24,25,38
+BackgroundAlternate=30,32,48
+ForegroundNormal=202,211,245
+ForegroundInactive=165,173,203
+ForegroundActive=198,160,246
+ForegroundLink=138,173,244
+ForegroundVisited=198,160,246
+ForegroundNegative=237,135,150
+ForegroundNeutral=245,169,127
+ForegroundPositive=166,218,149
+DecorationFocus=198,160,246
+DecorationHover=198,160,246
+
+[Colors:Complementary]
+BackgroundNormal=24,25,38
+BackgroundAlternate=30,32,48
+ForegroundNormal=202,211,245
+ForegroundInactive=165,173,203
+ForegroundActive=198,160,246
+ForegroundLink=138,173,244
+ForegroundVisited=198,160,246
+ForegroundNegative=237,135,150
+ForegroundNeutral=245,169,127
+ForegroundPositive=166,218,149
+DecorationFocus=198,160,246
+DecorationHover=198,160,246
+
+[WM]
+activeBackground=30,32,48
+activeForeground=202,211,245
+inactiveBackground=24,25,38
+inactiveForeground=165,173,203

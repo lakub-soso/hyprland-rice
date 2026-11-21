@@ -8,7 +8,8 @@ return {
     fileManager = "dolphin",
     -- Toggle: pressing the bind again while wofi is open closes it.
     -- Mode/look come from config/wofi/{config,style.css}.
-    menu        = "pkill -x wofi || wofi --show drun",
+    -- (cd so wofi's style.css can @import ../theme/macchiato.css)
+    menu        = "pkill -x wofi || (cd ~/.config/wofi && wofi --show drun)",
 
     mainMod     = "SUPER", -- Sets "Windows" key as main modifier
 }

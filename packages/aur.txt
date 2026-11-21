@@ -1,3 +1,6 @@
 # AUR packages, installed with yay (bootstrapped automatically if missing).
 visual-studio-code-bin
 claude-desktop
+papirus-folders-catppuccin-git   # Catppuccin folder colours for Papirus (by Catppuccin)
+catppuccin-gtk-theme-macchiato   # Catppuccin GTK theme (official release zips, sha256-pinned)
+catppuccin-sddm-theme-macchiato  # SDDM login theme (official release zips, sha256-pinned)

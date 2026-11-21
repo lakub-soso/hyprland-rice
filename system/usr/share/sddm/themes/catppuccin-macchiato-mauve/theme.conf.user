@@ -1,0 +1,6 @@
+# Overrides for the Catppuccin SDDM theme (SDDM reads theme.conf.user on top
+# of the package's theme.conf, so package updates don't undo this).
+# The wallpaper is copied there from data/wallpapers/ by ./install.sh system.
+[General]
+CustomBackground="true"
+Background="/usr/share/backgrounds/hyprland-rice/wallhaven-ly3x32.png"

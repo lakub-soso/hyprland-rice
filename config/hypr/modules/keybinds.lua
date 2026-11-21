@@ -13,12 +13,17 @@ local function mod(keys) return mainMod .. " + " .. keys end
 
 cs.section("General")
 cs.bind(mod("slash"), hl.dsp.exec_cmd(cs.command), "Toggle this cheatsheet")
+cs.bind(mod("L"),     hl.dsp.exec_cmd("pidof hyprlock || hyprlock"), "Lock screen") -- config/hypr/hyprlock.conf
 cs.bind(mod("M"), hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"), "Exit Hyprland")
 
 cs.section("Apps")
 cs.bind(mod("space"), hl.dsp.exec_cmd(programs.menu),        "App launcher")
 cs.bind(mod("T"),     hl.dsp.exec_cmd(programs.terminal),    "Terminal")
 cs.bind(mod("E"),     hl.dsp.exec_cmd(programs.fileManager), "File manager")
+
+cs.section("Screenshots")
+-- Saved to ~/Pictures/Screenshots + copied; click the notification to annotate
+cs.bind(mod("SHIFT + S"), hl.dsp.exec_cmd("~/.config/hypr/scripts/snip.sh"), "Snip region / click a window")
 
 cs.section("Windows")
 local closeWindowBind = cs.bind(mod("Q"), hl.dsp.window.close(), "Close window")
@@ -50,7 +55,7 @@ end
 
 -- Special workspace (scratchpad)
 cs.bind(mod("S"),         hl.dsp.workspace.toggle_special("magic"),          "Toggle scratchpad")
-cs.bind(mod("SHIFT + S"), hl.dsp.window.move({ workspace = "special:magic" }), "Move window to scratchpad")
+cs.bind(mod("ALT + S"),   hl.dsp.window.move({ workspace = "special:magic" }), "Move window to scratchpad")
 
 -- Scroll through existing workspaces with mainMod + scroll
 cs.bind(mod("mouse_down"), hl.dsp.focus({ workspace = "e+1" }), "Next workspace")

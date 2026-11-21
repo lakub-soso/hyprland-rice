@@ -1,11 +1,12 @@
-/* wofi style — GTK3 CSS. Colours are placeholders until we pick a scheme;
-   change them here in one place. */
-@define-color bg      #1e1e2e;
-@define-color bg-alt  #313244;
-@define-color fg      #cdd6f4;
-@define-color muted   #7f849c;
-@define-color accent  #33ccff;   /* matches the active window border */
-@define-color accent2 #00ff99;
+/* wofi style — GTK3 CSS, Catppuccin Macchiato.
+   NOTE: wofi resolves @import relative to its working directory, so it must be
+   launched from ~/.config/wofi (programs.lua / cheatsheet.lua both cd there). */
+@import url("../theme/macchiato.css");
+
+@define-color bg      @base;
+@define-color bg-alt  @surface0;
+@define-color fg      @text;
+@define-color muted   @overlay1;
 
 * {
     font-family: "Noto Sans", sans-serif;
