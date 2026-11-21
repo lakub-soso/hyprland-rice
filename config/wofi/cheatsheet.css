@@ -1,0 +1,12 @@
+/* Keybind cheatsheet (SUPER + /): the launcher style, but monospace so the
+   key / description columns line up. */
+@import url("style.css");
+
+* {
+    font-family: "DejaVu Sans Mono", monospace;
+    font-size: 13px;
+}
+
+#entry {
+    padding: 3px 10px;
+}

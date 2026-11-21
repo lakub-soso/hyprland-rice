@@ -1,0 +1,63 @@
+/* wofi style — GTK3 CSS. Colours are placeholders until we pick a scheme;
+   change them here in one place. */
+@define-color bg      #1e1e2e;
+@define-color bg-alt  #313244;
+@define-color fg      #cdd6f4;
+@define-color muted   #7f849c;
+@define-color accent  #33ccff;   /* matches the active window border */
+@define-color accent2 #00ff99;
+
+* {
+    font-family: "Noto Sans", sans-serif;
+    font-size: 14px;
+}
+
+window {
+    background-color: @bg;
+    border: 2px solid @accent;
+    border-radius: 10px;   /* same as decoration.rounding */
+}
+
+#outer-box {
+    padding: 12px;
+}
+
+#input {
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: @bg-alt;
+    color: @fg;
+    box-shadow: none;
+}
+
+#input:focus {
+    border: 1px solid @accent;
+}
+
+#scroll {
+    margin: 0;
+}
+
+#entry {
+    padding: 6px 10px;
+    border-radius: 8px;
+}
+
+#entry #img {
+    margin-right: 10px;
+}
+
+#text {
+    color: @fg;
+}
+
+#entry:selected {
+    background-color: @bg-alt;
+    border-left: 3px solid @accent2;
+}
+
+#entry:selected #text {
+    color: @accent;
+}
