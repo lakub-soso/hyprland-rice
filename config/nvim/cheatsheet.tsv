@@ -1,0 +1,49 @@
+# Neovim keybinds for the SUPER + / cheatsheet (config/rofi/scripts/cheatsheet.py).
+# Hand-kept: update together with config/nvim/lua/. Same format as the
+# generated Hyprland file: S<tab>Section / K<tab>KEYS<tab>Description.
+S	Find & files
+K	space + space	Find files
+K	space + f + g	Grep project
+K	space + f + w	Grep word under cursor
+K	space + f + b	Buffers
+K	space + f + r	Recent files
+K	space + f + s	Symbols in file
+K	space + f + d	Diagnostics in file
+K	space + f + k	Search keymaps
+K	space + f + .	Resume last search
+K	space + e	File tree sidebar (space + E: reveal file)
+K	-	File explorer (oil; edit + :w to rename/move)
+K	SHIFT + h / l	Previous / next buffer
+K	space + b + d	Close buffer
+K	CTRL + h/j/k/l	Move between splits
+K	space + w	Save
+K	space + q	Quit window
+S	Code (LSP)
+K	g + d	Go to definition
+K	g + r	References
+K	g + I	Implementations
+K	K	Hover docs
+K	space + c + a	Code action
+K	space + c + r	Rename symbol
+K	space + c + f	Format (also on save)
+K	space + c + d	Line diagnostics
+K	[ + d / ] + d	Prev / next diagnostic
+K	space + c + h	Toggle inlay hints
+K	CTRL + space	Open completion
+K	CTRL + y	Accept completion
+K	CTRL + n / p	Next / prev item
+S	Editing & git
+K	g + c + c	Comment line (gc + motion)
+K	s + a / s + d / s + r	Add / delete / replace surround
+K	J / K (visual)	Move selected lines
+K	space + p (visual)	Paste, keep register
+K	space + g + g	Lazygit (floating)
+K	space + g + l	Git log
+K	] + h / [ + h	Next / prev git hunk
+K	space + g + s	Stage hunk
+K	space + g + r	Reset hunk
+K	space + g + p	Preview hunk
+K	space + g + b	Blame line
+K	space + g + d	Diff file
+K	ESC + ESC	Leave terminal mode
+K	space	Wait → which-key lists the rest

@@ -13,6 +13,7 @@ config/          mirrors ~/.config — every file here is symlinked into place
   theme/macchiato.css    Catppuccin Macchiato palette (GTK CSS) for waybar;
                          Lua copy in hypr/modules/colors.lua. Accent = mauve.
   waybar/ rofi/ wlogout/ kitty/ dunst/ gtk-3.0/ gtk-4.0/ qt6ct/   per-app configs
+  nvim/                  Neovim config, see Neovim below
 data/            mirrors ~/.local/share — symlinked the same way
   wallpapers/wallhaven-ly3x32.png   desktop (hypr/hyprpaper.conf) + login
                  screen wallpaper — https://wallhaven.cc/w/ly3x32
@@ -99,3 +100,49 @@ Remove one:
 - **System-wide entry** → don't edit `/etc/xdg/autostart`; put a file with the
   same name in `config/autostart/` containing `[Desktop Entry]` + `Hidden=true`
   and run `./install.sh link`. That hides it for your user only.
+
+## Neovim
+
+Config in `config/nvim/` (linked to `~/.config/nvim`). An own small config in
+the spirit of kickstart.nvim, not a distro: every line is in this repo.
+
+```
+init.lua             leader = Space, loads the rest
+lua/config/          options, keymaps, autocmds, lazy.nvim bootstrap
+lua/plugins/         one file per area — lazy.nvim loads them all
+  colorscheme.lua    Catppuccin Macchiato
+  ui.lua             lualine, which-key, icons
+  editor.lua         fzf-lua, nvim-tree, oil, gitsigns, lazygit, mini.*
+  treesitter.lua     nvim-treesitter (main branch) parsers
+  lsp.lua            language servers via Mason + vim.lsp.config
+  completion.lua     blink.cmp
+  format.lua         conform.nvim, format on save
+lazy-lock.json       pinned plugin versions (`:Lazy update` updates this file)
+cheatsheet.tsv       the Neovim tab of the SUPER + / cheatsheet — keep in sync
+```
+
+**First run** (after `./install.sh packages` and `./install.sh link`):
+
+1. Run `./install.sh dev` first: the npm-based language servers need node
+   (from nvm) on PATH.
+2. Start `nvim` from a terminal. lazy.nvim installs the plugins, and Mason
+   installs the language servers + formatters in the background (`:Mason`
+   shows progress).
+3. `:TSUpdate` builds the treesitter parsers (needs `tree-sitter-cli`).
+4. `:checkhealth` if anything looks off.
+
+**Getting around:** press `Space` and wait. which-key lists everything, and
+the full list is in the cheatsheet (`SUPER + /`, then `Tab`). The essentials:
+`Space Space` find files · `Space f g` grep · `Space e` file tree · `-` oil ·
+`gd` / `gr` definition / references · `Space c a` code action ·
+`Space g g` lazygit.
+
+**Notes**
+- `vim` is aliased to `nvim` (`config/zsh/.zshrc`), and `EDITOR`/`VISUAL` are
+  `nvim` (`home/.zshenv`). The `vim` package stays installed as a fallback.
+- Clipboard: `clipboard=unnamedplus` uses `wl-copy` / `wl-paste`, so yank/paste
+  is shared with every other app.
+- Add a language server: put it in the `servers` table in `lsp.lua` (name from
+  `:help lspconfig-all`). Mason installs it on the next start.
+- lazygit's theme: `config/lazygit/config.yml`. Pressing `e` in lazygit opens
+  the file in the nvim it was launched from.

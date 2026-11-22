@@ -22,11 +22,28 @@ window {
 
 mainbox {
     spacing:  28px;
-    children: [ inputbar, listview ];
+    children: [ inputbar, mode-switcher, listview ];
 }
 
 inputbar {
     children: [ prompt, entry ];
+}
+
+/* tabs (Hyprland / Neovim) = rofi modes from cheatsheet.py; Tab / Shift+Tab */
+mode-switcher {
+    expand:   false;
+    spacing:  8px;
+}
+button {
+    padding:          4px 16px;
+    border-radius:    6px;
+    background-color: @surface0;
+    text-color:       @subtext0;
+    expand:           false;
+}
+button selected {
+    background-color: @mauve;
+    text-color:       @base;
 }
 
 listview {

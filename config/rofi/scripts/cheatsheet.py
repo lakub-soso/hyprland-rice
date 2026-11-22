@@ -2,7 +2,12 @@
 """Keybind cheatsheet (SUPER + /): fullscreen, symbolic keycaps, multi-column.
 
 Reads the data file hypr/modules/cheatsheet.lua writes on every config load
-(S<tab>Section / K<tab>KEYS<tab>Description), then:
+(S<tab>Section / K<tab>KEYS<tab>Description) — the "Hyprland" tab — and
+the hand-kept Neovim file (config/nvim/cheatsheet.tsv) — the "Neovim" tab.
+Each tab is a rofi script mode (-modi), so Tab / Shift+Tab switches in place
+— no relaunch. The launcher renders every tab once into $XDG_RUNTIME_DIR,
+then rofi calls this script back with `--mode N` to print tab N. For each
+sheet it:
   • draws keys as keycaps with symbols (❖ ⇧ ⌃ ⌥ ␣ ⏎ ⎋ …)
   • picks a column count for the focused monitor's width
   • packs whole sections into columns (a section never splits) and pads the
@@ -12,17 +17,24 @@ Type to filter. Esc (or SUPER + / again) closes.
 """
 import html
 import math
+import os
 import subprocess
 import sys
 
-DATA = sys.argv[1] if len(sys.argv) > 1 else "/run/user/1000/hypr-cheatsheet.tsv"
+RUNTIME = os.environ.get("XDG_RUNTIME_DIR", "/tmp")
+MODE_ARG = "--mode"
+DATA = (sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] != MODE_ARG
+        else f"{RUNTIME}/hypr-cheatsheet.tsv")
+# (tab name, data file). A tab whose file is missing is left out.
+TABS = [("Hyprland", DATA),
+        ("Neovim", os.path.expanduser("~/.config/nvim/cheatsheet.tsv"))]
 MIN_COLUMN_PX = 520           # logical px per column → 4 on 2560, 2 on a 1080 portrait
 MAX_COLUMNS = 4
 
 SYMBOLS = {
     "SUPER": "❖", "SHIFT": "⇧", "CTRL": "⌃", "CONTROL": "⌃", "ALT": "⌥",
     "space": "␣", "Return": "⏎", "Escape": "⎋", "Tab": "⇥", "BackSpace": "⌫",
-    "slash": "/", "period": ".", "comma": ",", "left": "←", "right": "→", "up": "↑", "down": "↓",
+    "slash": "/", "period": ".", "ESC": "⎋", "comma": ",", "left": "←", "right": "→", "up": "↑", "down": "↓",
     "mouse:272": "L-drag", "mouse:273": "R-drag",
     "mouse_down": "wheel↓", "mouse_up": "wheel↑",
     "XF86AudioRaiseVolume": "vol+", "XF86AudioLowerVolume": "vol−",
@@ -49,17 +61,21 @@ def keycaps(keys):
     return " ".join(KEYCAP.format(esc(t)) for t in toks), width
 
 
-def read_sections():
+def read_sections(path):
     sections = []
-    with open(DATA, encoding="utf-8") as f:
-        for line in f:
-            parts = line.rstrip("\n").split("\t")
-            if parts[0] == "S" and len(parts) > 1:
-                sections.append((parts[1], []))
-            elif parts[0] == "K" and len(parts) > 2:
-                if not sections:
-                    sections.append(("General", []))
-                sections[-1][1].append((parts[1], parts[2]))
+    try:
+        with open(path, encoding="utf-8") as f:
+            lines = [l for l in f if not l.startswith("#")]
+    except OSError:
+        return []
+    for line in lines:
+        parts = line.rstrip("\n").split("\t")
+        if parts[0] == "S" and len(parts) > 1:
+            sections.append((parts[1], []))
+        elif parts[0] == "K" and len(parts) > 2:
+            if not sections:
+                sections.append(("General", []))
+            sections[-1][1].append((parts[1], parts[2]))
     return [s for s in sections if s[1]]
 
 
@@ -103,15 +119,8 @@ def pack(sections, cols):
     return fill(height)
 
 
-def main():
-    # toggle: a second press closes it
-    if subprocess.run(["pkill", "-x", "rofi"]).returncode == 0:
-        return
-    sections = read_sections()
-    if not sections:
-        return
-
-    # rows per section: header + items, plus a blank spacer between sections
+def render(sections):
+    """sections → list of rendered sections (each a list of markup rows)"""
     rendered = []
     key_w = max(keycaps(k)[1] for _, items in sections for k, _ in items) + 2
     for name, items in sections:
@@ -120,17 +129,52 @@ def main():
             caps, w = keycaps(keys)
             rows.append(caps + " " * (key_w - w) + DESC.format(esc(desc)))
         rendered.append(rows)
+    return rendered
 
-    cols = max(1, min(MAX_COLUMNS, int(focused_logical_width() // MIN_COLUMN_PX), len(rendered)))
-    columns = pack(rendered, cols)
-    lines = max(len(c) for c in columns)
-    text = "\n".join(row for c in columns for row in c + [" "] * (lines - len(c))) + "\n"
 
+def tab_file(i):
+    return f"{RUNTIME}/cheatsheet-tab{i}.txt"
+
+
+def print_mode(i):
+    """rofi script mode: print tab i (first call) or nothing (after a pick → rofi closes)."""
+    if os.environ.get("ROFI_RETV", "0") != "0":
+        return
+    # \0 options: markup, no free text; \x1f separates option name/value
+    sys.stdout.write("\0markup-rows\x1ftrue\n\0no-custom\x1ftrue\n")
+    with open(tab_file(i), encoding="utf-8") as f:
+        sys.stdout.write(f.read())
+
+
+def main():
+    if len(sys.argv) > 2 and sys.argv[1] == MODE_ARG:
+        return print_mode(int(sys.argv[2]))
+    # toggle: a second press closes it
+    if subprocess.run(["pkill", "-x", "rofi"]).returncode == 0:
+        return
+    tabs = [(name, render(secs)) for name, path in TABS if (secs := read_sections(path))]
+    if not tabs:
+        return
+
+    # One listview shape for all tabs (rofi can't change it per mode): same
+    # column count, height = the tallest tab; shorter tabs are padded.
+    cols = max(1, min(MAX_COLUMNS, int(focused_logical_width() // MIN_COLUMN_PX),
+                      max(len(r) for _, r in tabs)))
+    packed = [pack(r, cols) for _, r in tabs]
+    lines = max(len(c) for cols_ in packed for c in cols_)
+    for i, columns in enumerate(packed):
+        columns += [[]] * (cols - len(columns))
+        text = "\n".join(row for c in columns for row in c + [" "] * (lines - len(c))) + "\n"
+        with open(tab_file(i), "w", encoding="utf-8") as f:
+            f.write(text)
+
+    me = os.path.realpath(__file__)
+    modi = ",".join(f"{name}:{me} {MODE_ARG} {i}" for i, (name, _) in enumerate(tabs))
     subprocess.run(
-        ["rofi", "-dmenu", "-i", "-no-custom", "-markup-rows", "-p", "Keybinds",
+        ["rofi", "-modi", modi, "-show", tabs[0][0], "-i",
          "-theme", "cheatsheet",
-         "-theme-str", f"listview {{ lines: {lines}; columns: {len(columns)}; }}"],
-        input=text, text=True, stdout=subprocess.DEVNULL)
+         "-theme-str", f"listview {{ lines: {lines}; columns: {cols}; }}"],
+        stdout=subprocess.DEVNULL)
 
 
 if __name__ == "__main__":

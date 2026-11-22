@@ -101,7 +101,10 @@ playerctl
 # --- Core desktop apps ---
 kitty              # terminal (also: Windows Terminal, Git Bash → git)
 dolphin            # file manager
-neovim
+neovim             # config: config/nvim (lazy.nvim; servers via :Mason)
+ripgrep            # nvim live grep (fzf-lua)
+tree-sitter-cli    # nvim-treesitter builds its parsers with it
+lazygit            # git TUI (nvim: space g g), config/lazygit
 htop
 fastfetch
 flatpak                    # apps in packages/flatpak.txt (Bazaar store, Dev Toolbox)

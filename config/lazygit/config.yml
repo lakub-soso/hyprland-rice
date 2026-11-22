@@ -1,0 +1,23 @@
+# lazygit — Catppuccin Macchiato (mauve). Opened from nvim with <space> g g,
+# or `lazygit` in a terminal.
+gui:
+  nerdFontsVersion: "3"
+  border: rounded
+  showBottomLine: false
+  theme:
+    activeBorderColor: ["#c6a0f6", bold]       # mauve
+    inactiveBorderColor: ["#a5adcb"]           # subtext0
+    searchingActiveBorderColor: ["#eed49f"]    # yellow
+    optionsTextColor: ["#8aadf4"]              # blue
+    selectedLineBgColor: ["#363a4f"]           # surface0
+    inactiveViewSelectedLineBgColor: ["#494d64"]
+    cherryPickedCommitFgColor: ["#c6a0f6"]
+    cherryPickedCommitBgColor: ["#494d64"]
+    markedBaseCommitFgColor: ["#8aadf4"]
+    markedBaseCommitBgColor: ["#eed49f"]
+    unstagedChangesColor: ["#ed8796"]          # red
+    defaultFgColor: ["#cad3f5"]                # text
+  authorColors:
+    "*": "#b7bdf8"                             # lavender
+os:
+  editPreset: nvim-remote     # `e` on a file opens it in the nvim that launched lazygit
