@@ -63,6 +63,15 @@ blueman            # Bluetooth tray applet + device manager (autostarts via /etc
 gnome-keyring
 seahorse
 
+# --- Shell (zsh + Starship, config/zsh/.zshrc, config/starship.toml) ---
+zsh
+starship           # prompt (Catppuccin powerline, p10k-like; p10k has "very limited support")
+fzf                # fuzzy finder + fzf-tab completion
+zoxide             # smarter cd (`z`)
+bat                # cat with syntax highlighting (aliased to cat)
+pkgfile            # zsh "command not found → install with pacman -S …"
+ttf-jetbrains-mono-nerd   # Nerd Font for prompt icons (kitty font)
+
 # --- Fonts ---
 noto-fonts
 noto-fonts-cjk
@@ -107,6 +116,7 @@ dbeaver
 zed
 jq                         # JSON on the CLI (DevToys-style formatting/querying)
 yq                         # YAML/XML/TOML on the CLI
+bun                        # Bun JS runtime/package manager (globals go to ~/.bun/bin). Node: nvm, see ./install.sh dev
 # More DevToys-style FOSS tools, if Dev Toolbox (aur.txt) isn't enough:
 textpieces    # text transformations scratchpad (extra)
 collision     # hash generate/compare (extra)

@@ -7,6 +7,8 @@
 #   ./install.sh link         # symlink config/* into ~/.config (backs up existing)
 #   ./install.sh unlink       # remove symlinks that point into this repo
 #   ./install.sh services     # enable system/user services
+#   ./install.sh shell        # make zsh the login shell (asks your password)
+#   ./install.sh dev          # nvm + Node LTS + npm globals (bun comes from pacman.txt)
 #   ./install.sh dirs         # create ~/Pictures, ~/Videos, … (xdg-user-dirs)
 #   ./install.sh system       # copy system/ into / with sudo (e.g. SDDM theme)
 #   ./install.sh theme        # apply dark-mode gsettings (dconf)
@@ -19,10 +21,11 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DST="${XDG_CONFIG_HOME:-$HOME/.config}"
 DATA_DST="${XDG_DATA_HOME:-$HOME/.local/share}"
 # Repo dir -> where its files get symlinked
-LINK_TREES=("$REPO/config:$CONFIG_DST" "$REPO/data:$DATA_DST")
+LINK_TREES=("$REPO/config:$CONFIG_DST" "$REPO/data:$DATA_DST" "$REPO/home:$HOME")
 KDE_SCHEME="CatppuccinMacchiatoMauve"
 ICON_THEME="Papirus-Dark"
 GTK_THEME="catppuccin-macchiato-mauve-standard+default"   # from catppuccin-gtk-theme-macchiato
+NPM_GLOBALS=(@angular/cli @nestjs/cli azurite)   # installed by `./install.sh dev`
 FOLDER_COLOR="cat-macchiato-mauve"   # from papirus-folders-catppuccin-git
 DRY_RUN="${DRY_RUN:-0}"
 
@@ -224,6 +227,55 @@ cmd_services() {
     run sudo systemctl enable NetworkManager.service bluetooth.service sddm.service
     run systemctl --user enable pipewire.socket pipewire-pulse.socket wireplumber.service \
         gnome-keyring-daemon.socket
+    # weekly refresh of pkgfile's database — zsh's command-not-found snippet
+    # uses it to suggest "pacman -S <pkg>" for unknown commands
+    if systemctl list-unit-files pkgfile-update.timer --no-legend 2>/dev/null | grep -q .; then
+        run sudo systemctl enable --now pkgfile-update.timer
+    fi
+}
+
+# Node via nvm, per user, in ~/.config/nvm (where config/zsh/.zshrc loads it).
+# nvm has no Arch package: install it as its README's "manual install" says
+# (git clone + checkout of the latest release tag — no curl | bash).
+# Then: latest LTS as default, and the NPM_GLOBALS that aren't installed yet.
+# Safe to re-run. Bun is a normal package (pacman.txt).
+cmd_dev() {
+    local nvm_dir="${XDG_CONFIG_HOME:-$HOME/.config}/nvm"
+    if [[ ! -s $nvm_dir/nvm.sh ]]; then
+        log "Installing nvm (latest release) into $nvm_dir"
+        run git clone --quiet https://github.com/nvm-sh/nvm.git "$nvm_dir"
+        if [[ $DRY_RUN != 1 ]]; then
+            ( cd "$nvm_dir" && git checkout --quiet \
+                "$(git describe --abbrev=0 --tags --match 'v[0-9]*' "$(git rev-list --tags --max-count=1)")" )
+        fi
+    else
+        log "nvm already installed ($(cd "$nvm_dir" && git describe --tags 2>/dev/null))"
+    fi
+    if [[ $DRY_RUN == 1 ]]; then
+        echo "  [dry] nvm install --lts && nvm alias default lts/* && npm install -g <missing of: ${NPM_GLOBALS[*]}>"
+        return
+    fi
+    # nvm.sh isn't compatible with this script's `set -euo pipefail`, so run
+    # the Node part in a plain bash.
+    log "Installing Node LTS and npm globals: ${NPM_GLOBALS[*]}"
+    NVM_DIR="$nvm_dir" NG_CLI_ANALYTICS=false bash -c '
+        . "$NVM_DIR/nvm.sh"
+        nvm install --lts && nvm alias default "lts/*" >/dev/null || exit 1
+        missing=()
+        for pkg in "$@"; do npm ls -g --depth=0 "$pkg" >/dev/null 2>&1 || missing+=("$pkg"); done
+        if ((${#missing[@]})); then npm install -g "${missing[@]}"; else echo "npm globals already installed"; fi
+    ' _ "${NPM_GLOBALS[@]}" || warn "Node setup failed"
+}
+
+# Login shell → zsh (config: home/.zshenv + config/zsh/.zshrc). chsh asks for
+# your password. Takes effect at next login (new terminals pick it up then).
+cmd_shell() {
+    local zsh_bin cur
+    zsh_bin="$(command -v zsh)" || { warn "zsh not installed — run ./install.sh packages first"; return; }
+    cur="$(getent passwd "$USER" | cut -d: -f7)"
+    [[ $cur == "$zsh_bin" ]] && { log "Login shell is already zsh"; return; }
+    log "Changing login shell $cur → $zsh_bin"
+    run chsh -s "$zsh_bin"
 }
 
 # Standard home folders (Desktop, Documents, Downloads, Music, Pictures, Public,
@@ -337,16 +389,18 @@ cmd_diff() {
 main() {
     local cmd="${1:-all}"; shift || true
     case "$cmd" in
-        all)      cmd_packages "$@"; cmd_link; cmd_dirs; cmd_system; cmd_services; cmd_theme ;;
+        all)      cmd_packages "$@"; cmd_link; cmd_dirs; cmd_system; cmd_services; cmd_shell; cmd_dev; cmd_theme ;;
         packages) cmd_packages "$@" ;;
         link)     cmd_link ;;
         unlink)   cmd_unlink ;;
         services) cmd_services ;;
+        shell)    cmd_shell ;;
+        dev)      cmd_dev ;;
         dirs)     cmd_dirs ;;
         system)   cmd_system ;;
         theme)    cmd_theme ;;
         diff)     cmd_diff ;;
-        *) sed -n '2,16p' "$0"; exit 1 ;;
+        *) sed -n '2,18p' "$0"; exit 1 ;;
     esac
 }
 main "$@"

@@ -21,6 +21,10 @@ data/            mirrors ~/.local/share — symlinked the same way
                  `./install.sh theme` merges this into ~/.config/kdeglobals and
                  selects it in dolphinrc (kdeglobals isn't symlinked because
                  KDE apps write their own settings into it).
+home/            mirrors $HOME — symlinked like config/ (just .zshenv, which
+                 points zsh at ~/.config/zsh via ZDOTDIR)
+config/zsh/.zshrc        zsh: zinit plugins, fzf-tab, zoxide, history…
+config/starship.toml     prompt: Catppuccin Macchiato powerline (p10k-like)
 system/          mirrors / — COPIED (sudo) by `./install.sh system`, since
                  system daemons can't read $HOME. Re-run after editing.
   etc/sddm.conf.d/10-theme.conf   SDDM login theme (Catppuccin Macchiato mauve)
