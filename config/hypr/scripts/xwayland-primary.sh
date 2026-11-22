@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Mark the main monitor as XWayland's RandR *primary* output.
 #
-# XWayland has no primary by default and lists outputs in connector order, so
-# here the portrait Samsung (HDMI-A-2) comes first. X11/Proton games treat
-# the first output as the primary display, so they defaulted to 1080x1920 on
-# the wrong screen. Main monitor = the one Hyprland places at 0x0
-# (modules/monitors.lua); else the biggest.
+# XWayland has no primary by default and lists outputs in connector order;
+# X11/Proton games then treat the first output as the primary display (with
+# the Samsung on the lower port they defaulted to 1080x1920 on the wrong
+# screen). The cabling now puts the Philips first (modules/monitors.lua);
+# this keeps games right whatever the port order.
+# Main monitor = the one Hyprland places at 0x0 (modules/monitors.lua);
+# else the biggest.
 #
 # Run at startup and on monitor hotplug (modules/autostart.lua). XWayland may
 # not have its outputs yet right after login, so retry for a few seconds.

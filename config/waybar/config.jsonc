@@ -4,7 +4,7 @@
     // Waybar can't match a partial description (it needs make+model+serial,
     // which we keep out of the repo), so if you move the Philips to another
     // port, update this — check with `hyprctl monitors`.
-    "output": "HDMI-A-3",
+    "output": "HDMI-A-2",
 
     "layer": "top",
     "position": "top",
