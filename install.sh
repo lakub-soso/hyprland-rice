@@ -37,21 +37,26 @@ GTK_THEME="catppuccin-macchiato-mauve-standard+default"   # from catppuccin-gtk-
 #   prefix/  declared types under that prefix (e.g. video/)
 #   a/b      that exact type, declared or not
 DEFAULT_APPS=(
+    # LibreOffice first: it also declares PDF (Draw), some images (Draw) and
+    # text/plain (Writer), so every app listed after it wins those
+    "libreoffice-writer.desktop:*"
+    "libreoffice-calc.desktop:* text/csv"
+    "libreoffice-impress.desktop:*"
+    "libreoffice-draw.desktop:*"
+    "libreoffice-math.desktop:*"
+    "libreoffice-base.desktop:*"
     "mpv.desktop:video/ audio/"
     "org.kde.gwenview.desktop:image/"
     "org.kde.dolphin.desktop:inode/directory"
     "org.kde.ark.desktop:* application/x-rar"
-    # ONLYOFFICE declares PDF/EPUB/DjVu too — it goes before Okular so Okular wins those
-    "onlyoffice-desktopeditors.desktop:* text/csv"
-    # text & code → Kate (after ONLYOFFICE, which also declares text/plain) (Notepad replacement; it declares almost nothing itself)
+    # text & code → Kate (Notepad replacement; it declares almost nothing itself)
     "org.kde.kate.desktop:text/plain text/markdown text/x-python text/x-python3 text/x-shellscript application/x-shellscript text/x-csrc text/x-chdr text/x-c++src text/x-c++hdr text/x-java text/x-go text/x-rust text/rust text/javascript application/javascript text/x-typescript application/typescript text/css text/x-scss application/json application/xml text/xml application/x-yaml text/x-yaml application/toml text/x-toml text/x-log application/x-desktop text/x-ini"
     "okularApplication_pdf.desktop:*"
     "okularApplication_epub.desktop:*"
     "okularApplication_djvu.desktop:*"
     "okularApplication_comicbook.desktop:*"
     "firefox.desktop:x-scheme-handler/http x-scheme-handler/https text/html application/xhtml+xml"
-    "proton-mail.desktop:x-scheme-handler/mailto"        # mailto: links → Proton Mail
-    "org.mozilla.Thunderbird.desktop:message/rfc822"     # .eml files (Proton Mail can't open them)
+    "org.mozilla.Thunderbird.desktop:x-scheme-handler/mailto message/rfc822"   # mailto: links + .eml files
     "org.gnome.Calendar.desktop:text/calendar"
     "org.qbittorrent.qBittorrent.desktop:application/x-bittorrent x-scheme-handler/magnet"
 )
@@ -369,7 +374,7 @@ cmd_defaults() {
     fi
 }
 
-# JetBrains IDEs (Toolbox), VS Code, DBeaver, Zed, GIMP (+ Photoshop keys/layout), Inkscape (+ Illustrator keys), Obsidian: official Catppuccin plugins/extensions +
+# JetBrains IDEs (Toolbox), VS Code, DBeaver, Zed, GIMP (+ Photoshop keys/layout), Inkscape (+ Illustrator keys), Obsidian, Thunderbird: official Catppuccin plugins/extensions +
 # Macchiato themes, merged into existing settings. See the two scripts.
 cmd_ide() {
     if [[ $DRY_RUN == 1 ]]; then echo "  [dry] jetbrains-catppuccin.py"; return; fi
@@ -381,6 +386,7 @@ cmd_ide() {
     python3 "$REPO/config/hypr/scripts/gimp-photoshop.py" || warn "GIMP theming had problems"
     python3 "$REPO/config/hypr/scripts/inkscape-illustrator.py" || warn "Inkscape theming had problems"
     python3 "$REPO/config/hypr/scripts/obsidian-catppuccin.py" || warn "Obsidian theming had problems"
+    python3 "$REPO/config/hypr/scripts/thunderbird-catppuccin.py" || warn "Thunderbird theming had problems"
 }
 
 # Login shell → zsh (config: home/.zshenv + config/zsh/.zshrc). chsh asks for

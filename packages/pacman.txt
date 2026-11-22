@@ -111,6 +111,7 @@ flatpak                    # apps in packages/flatpak.txt (Bazaar store, Dev Too
 
 # --- Browsers ---
 firefox
+thunderbird                # mail (also the mailto: and .eml handler)
 librewolf
 torbrowser-launcher        # Tor Browser (downloads + verifies the official build)
 epiphany                   # GNOME Web (WebKit) — Safari-engine testing
@@ -140,12 +141,16 @@ filezilla
 qbittorrent
 transmission-qt
 networkmanager-openvpn     # import .ovpn VPN profiles in NetworkManager
-proton-vpn-gtk-app         # Proton VPN
 tailscale
 putty                      # (plain `ssh` in a terminal also works)
 
 # --- Productivity / office ---
 obsidian
+libreoffice-fresh          # Microsoft Office (Writer, Calc, Impress, Draw); GTK → Catppuccin
+libreoffice-fresh-en-gb    # en-GB UI, matches the locale
+libreoffice-fresh-uk       # Ukrainian UI / help
+hunspell-en_gb             # spell check: English (UK), Russian
+hunspell-ru
 kate                       # Notepad
 kcalc                      # Calculator
 gnome-clocks               # Clock: world clocks, alarms, timers, stopwatch (click waybar time)

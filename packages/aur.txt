@@ -18,8 +18,7 @@ ttf-ms-fonts                     # Microsoft core fonts (Arial, Times New Roman,
 #viber
 chatterino2-bin                  # maintained by Chatterino's own dev (pajlada)
 
-# --- Proton / passwords / 2FA ---
-proton-mail-bin
+# --- Passwords / 2FA ---
 ente-auth-bin
 
 # --- VPN ---
@@ -30,9 +29,6 @@ visual-studio-code-bin
 docker-desktop                   # Docker's official Arch package, sha256-pinned; conflicts with docker-compose/docker-buildx (bundles them)
 bruno-bin
 jetbrains-toolbox                # installs CLion, WebStorm, … from inside the app
-
-# --- Office ---
-onlyoffice-bin
 
 # --- Creative ---
 # davinci-resolve — NOT installed via yay: Blackmagic requires registration to
