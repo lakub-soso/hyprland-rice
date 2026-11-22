@@ -27,8 +27,10 @@ SYMBOLS = {
     "mouse_down": "wheel↓", "mouse_up": "wheel↑",
     "XF86AudioRaiseVolume": "vol+", "XF86AudioLowerVolume": "vol−",
     "XF86AudioMute": "mute", "XF86AudioMicMute": "mic",
-    "XF86AudioPlay": "⏯", "XF86AudioPause": "⏸",
-    "XF86AudioNext": "⏭", "XF86AudioPrev": "⏮",
+    # Nerd Font media icons, not ⏯ ⏭ ⏮: those Unicode symbols are drawn by the
+    # colour emoji font (double width, breaks the column alignment)
+    "XF86AudioPlay": "\U000f040e", "XF86AudioPause": "\U000f03e4",
+    "XF86AudioNext": "\U000f04ad", "XF86AudioPrev": "\U000f04ae",
     "XF86MonBrightnessUp": "☀+", "XF86MonBrightnessDown": "☀−",
 }
 KEYCAP = '<span background="#363a4f" foreground="#cad3f5"> {} </span>'   # surface0 / text

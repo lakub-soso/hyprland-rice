@@ -80,6 +80,15 @@ cs.bind(mod("ALT + S"),   hl.dsp.window.move({ workspace = "special:magic" }), "
 cs.bind(mod("mouse_down"), hl.dsp.focus({ workspace = "e+1" }), "Next workspace")
 cs.bind(mod("mouse_up"),   hl.dsp.focus({ workspace = "e-1" }), "Previous workspace")
 
+-- Beyond 1-10: workspaces can have any number. "r±1" = next/previous by
+-- number (creates it if needed, e.g. 11), "empty" = lowest-numbered free one.
+cs.bind(mod("CTRL + right"),         hl.dsp.focus({ workspace = "r+1" }),          "Next workspace (creates 11, 12…)")
+cs.bind(mod("CTRL + left"),          hl.dsp.focus({ workspace = "r-1" }),          "Previous workspace")
+cs.bind(mod("CTRL + SHIFT + right"), hl.dsp.window.move({ workspace = "r+1" }),    "Move window to next workspace")
+cs.bind(mod("CTRL + SHIFT + left"),  hl.dsp.window.move({ workspace = "r-1" }),    "Move window to previous workspace")
+cs.bind(mod("N"),                    hl.dsp.focus({ workspace = "empty" }),        "New empty workspace")
+cs.bind(mod("SHIFT + N"),            hl.dsp.window.move({ workspace = "empty" }),  "Move window to new empty workspace")
+
 cs.section("Media")
 -- Multimedia keys for volume and LCD brightness
 cs.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), "Volume up",       { locked = true, repeating = true })

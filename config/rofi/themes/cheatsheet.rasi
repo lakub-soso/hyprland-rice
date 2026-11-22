@@ -43,9 +43,9 @@ element {
     margin:        0 24px 0 0;      /* gap between columns */
     border-radius: 6px;
 }
-/* selection is incidental here (it's a reference sheet): keep it subtle */
-element selected.normal {
-    background-color: rgba(54, 58, 79, 0.55);
+/* a reference sheet, not a menu: rofi always selects a row, so make the
+   selection invisible (it showed as a box around the first header) */
+element selected.normal, element selected.active, element selected.urgent {
+    background-color: transparent;
     border:           0;
-    text-color:       @text;
 }
