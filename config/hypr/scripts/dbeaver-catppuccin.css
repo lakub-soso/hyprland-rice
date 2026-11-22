@@ -1,0 +1,57 @@
+/* ==== Catppuccin Macchiato for DBeaver's window chrome (hyprland-rice) ====
+   Appended by dbeaver-catppuccin.py to a copy of Eclipse's dark theme
+   stylesheet (e4-dark_linux.css), stored where Eclipse's theme engine looks for
+   *modified* stylesheets: <configuration>/org.eclipse.e4.ui.css.swt.theme/.
+   Rules come last, so they win over the dark theme's greys.
+   Palette: base #24273a · mantle #1e2030 · crust #181926 · surface0 #363a4f
+            surface1 #494d64 · overlay1 #8087a2 · subtext0 #a5adcb
+            text #cad3f5 · mauve #c6a0f6 */
+
+/* window, panels, toolbars */
+Shell, Composite, ScrolledComposite, Canvas, Sash, Label, CLabel, Group,
+ToolBar, CoolBar, ExpandBar, Form, FormText, Section,
+.MTrimmedWindow, .MTrimBar, .MTrimBar Composite, .MTrimBar ToolBar,
+.MPartSashContainer, #org-eclipse-ui-main-toolbar, #org-eclipse-ui-main-toolbar ToolBar,
+.MPartStack, .MPart, .MPart Composite, .MPart Canvas, .MPart Label,
+.MPartStack.active .MPart Composite, .MPartStack.active .MPart Canvas,
+.MPartStack.active .MPart Label {
+    background-color: #24273a;
+    color: #cad3f5;
+}
+
+/* lists, trees, tables, inputs */
+Tree, Table, List, Text, StyledText, Combo, CCombo, Spinner, DateTime,
+.MPart Tree, .MPart Table, .MPart List, .MPart Text, .MPart StyledText,
+.MPartStack.active .MPart Tree, .MPartStack.active .MPart Table,
+.MPartStack.active .MPart Text, .MPartStack.active .MPart StyledText {
+    background-color: #1e2030;
+    color: #cad3f5;
+}
+
+/* view / editor tabs */
+CTabFolder, CTabFolder Canvas, .MPartStack CTabFolder, .MPartStack CTabFolder Canvas {
+    background-color: #1e2030;
+    color: #a5adcb;
+    swt-selected-tab-fill: #24273a;
+    swt-unselected-tabs-color: #1e2030;
+    swt-tab-outline: #363a4f;
+    swt-outer-keyline-color: #363a4f;
+    swt-inner-keyline-color: #24273a;
+}
+.MPartStack.active CTabFolder, .MPartStack.active CTabFolder Canvas {
+    background-color: #24273a;
+    swt-selected-tab-fill: #24273a;
+    swt-unselected-tabs-color: #1e2030;
+}
+CTabItem, .MPartStack CTabItem { color: #a5adcb; }
+CTabItem:selected, .MPartStack CTabItem:selected { color: #cad3f5; }
+.MPartStack.active CTabItem:selected { color: #c6a0f6; }
+
+/* bottom status bar */
+StatusLine, ImageBasedFrame,
+#org-eclipse-ui-StatusLine, #org-eclipse-ui-StatusLine CLabel,
+#org-eclipse-ui-ProgressBar, #org-eclipse-ui-ProgressBar Canvas,
+.MTrimBar#org-eclipse-ui-trim-status, .MTrimBar#org-eclipse-ui-trim-status Composite {
+    background-color: #181926;
+    color: #a5adcb;
+}

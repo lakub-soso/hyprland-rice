@@ -1,0 +1,9 @@
+[Unit]
+Description=Watch for new Flatpak app data dirs
+
+[Path]
+PathChanged=%h/.var/app
+Unit=flatpak-gtk-sync.service
+
+[Install]
+WantedBy=default.target

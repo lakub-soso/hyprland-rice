@@ -13,7 +13,7 @@
 
     "modules-left": ["hyprland/workspaces", "hyprland/submap", "hyprland/window"],
     "modules-center": ["clock#date", "clock#time", "mpris"],
-    "modules-right": ["hyprland/language", "custom/mic", "pulseaudio", "custom/sysmon", "tray"],
+    "modules-right": ["hyprland/language", "custom/mic", "pulseaudio", "power-profiles-daemon", "custom/sysmon", "tray"],
 
     "hyprland/workspaces": {
         // Show workspaces from every monitor, since this is the only bar
@@ -109,6 +109,17 @@
         "on-click-middle": "playerctl previous",
         "on-scroll-up": "playerctl next",
         "on-scroll-down": "playerctl previous"
+    },
+    // Power profile (power-profiles-daemon): click cycles, right-click goes back.
+    "power-profiles-daemon": {
+        "format": "{icon}",
+        "tooltip-format": "Power profile: {profile}\nDriver: {driver}\nclick: next · right-click: previous",
+        "format-icons": {
+            "power-saver": "󰾆",
+            "balanced": "󰾅",
+            "performance": "󰓅",
+            "default": "󰾅"
+        }
     },
     // System monitor: CPU · RAM · GPU in one pill (hypr/scripts/sysmon.py).
     // Hover: temps, load, swap, VRAM, disk… · click: Mission Center.

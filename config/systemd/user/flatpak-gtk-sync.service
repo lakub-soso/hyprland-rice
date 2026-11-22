@@ -1,0 +1,6 @@
+[Unit]
+Description=Copy Catppuccin GTK4 theme into Flatpak app sandboxes
+
+[Service]
+Type=oneshot
+ExecStart=%h/.config/hypr/scripts/flatpak-gtk-sync.sh

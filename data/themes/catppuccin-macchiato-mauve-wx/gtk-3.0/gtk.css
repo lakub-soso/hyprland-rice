@@ -1,0 +1,13 @@
+/* Catppuccin for wxWidgets apps (FileZilla). Loaded via GTK_THEME in their
+   .desktop override (data/applications/), so it affects only those apps.
+
+   wxGTK takes its "button face" system colour (tab strips, AUI notebooks,
+   generic controls) from the theme's button background-color, dropping alpha.
+   Catppuccin buttons are rgba(white, 0.08) → wx painted them near-white.
+   Give buttons an opaque equivalent (8% white over base ≈ surface0). Real
+   flat/toolbar buttons keep transparent: their theme rules are more specific. */
+@import url("file:///usr/share/themes/catppuccin-macchiato-mauve-standard+default/gtk-3.0/gtk.css");
+
+button {
+    background-color: #363a4f;   /* surface0 */
+}

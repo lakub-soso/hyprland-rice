@@ -72,7 +72,7 @@ tooltip label { color: @text; }
 window#waybar.empty #window { background: transparent; }
 
 /* --- right: status modules, each a pill --- */
-#mpris, #language, #custom-mic, #pulseaudio, #custom-sysmon, #tray, #clock {
+#mpris, #language, #custom-mic, #pulseaudio, #power-profiles-daemon, #custom-sysmon, #tray, #clock {
     margin: 4px 3px;
     padding: 0 10px;
     border-radius: 8px;
@@ -87,6 +87,9 @@ window#waybar.empty #window { background: transparent; }
 #custom-mic.live  { color: @red; }       /* mic is hot */
 #custom-mic.muted { color: @overlay1; }
 #pulseaudio { color: @blue; }
+#power-profiles-daemon.power-saver { color: @green; }
+#power-profiles-daemon.balanced    { color: @blue; }
+#power-profiles-daemon.performance { color: @peach; }
 #custom-sysmon          { color: @text; }      /* icons are coloured in the text itself */
 #custom-sysmon.warning  { color: @yellow; }
 #custom-sysmon.critical { color: @red; }

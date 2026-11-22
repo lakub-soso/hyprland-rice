@@ -20,8 +20,6 @@ chatterino2-bin                  # maintained by Chatterino's own dev (pajlada)
 
 # --- Proton / passwords / 2FA ---
 proton-mail-bin
-proton-pass-bin
-proton-authenticator-bin
 ente-auth-bin
 
 # --- VPN ---

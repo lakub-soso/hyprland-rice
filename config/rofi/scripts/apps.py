@@ -2,8 +2,9 @@
 """rofi script mode "Apps" for the launcher (SUPER + Space).
 
 Lists desktop apps under category headers, alphabetical within each category,
-with the 5 most recently launched apps on top, tagged "recent" (shown
-there only, so search results don't contain duplicates).
+with the 5 most recently launched apps on top, tagged "recent" — they also
+stay in their category; the recent copies only show while the search box is
+empty, so search results never list an app twice.
 
 Also handles the launcher's header buttons (themes/launcher.rasi). With
 use-hot-keys on, rofi sends custom keys here instead of switching modes:
@@ -163,7 +164,13 @@ def row(app_id, e, recent=False):
     if generic and generic.casefold() != e["Name"].casefold():
         display += SUBTITLE.format(html.escape(generic, quote=False))
     if recent:
-        display += RECENT_TAG
+        # Recent rows are only for the empty launcher: their searchable text is
+        # a zero-width space and they get no meta, so as soon as you type they
+        # drop out and every app appears once (from its category).
+        opts.pop("meta")
+        opts["display"] = display + RECENT_TAG
+        out("\u200b", **opts)
+        return
     if display != name:
         opts["display"] = display
     out(name, **opts)
@@ -179,13 +186,14 @@ def list_apps():
     # (-selected-row 1 would skip a header on open, but it keeps the SECOND
     # row selected while searching.) Until something has been launched, the
     # list starts with a category header — press Down once.
+    # Recent apps ALSO stay in their category; the recent copies are hidden
+    # from search (see row()), so results never show an app twice.
     recent = [i for i in read_recent() if i in apps][:RECENT_SHOWN]
     for app_id in recent:
         row(app_id, apps[app_id], recent=True)
     groups = {}
     for app_id, e in apps.items():
-        if app_id not in recent:
-            groups.setdefault(section(e), []).append((e["Name"].casefold(), app_id, e))
+        groups.setdefault(section(e), []).append((e["Name"].casefold(), app_id, e))
     for name in sorted(groups, key=lambda n: (n == OTHER, n)):   # A–Z, "Other" last
         out(HEADER.format(name.upper()), nonselectable="true")
         for _, app_id, e in sorted(groups[name]):

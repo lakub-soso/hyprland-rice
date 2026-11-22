@@ -9,6 +9,7 @@
 #   ./install.sh services     # enable system/user services
 #   ./install.sh shell        # make zsh the login shell (asks your password)
 #   ./install.sh defaults     # default apps (DEFAULT_APPS: mpv, Gwenview, Dolphin, Kate…)
+#   ./install.sh ide          # Catppuccin for JetBrains IDEs, VS Code, DBeaver (merged into existing settings)
 #   ./install.sh dev          # nvm + Node LTS + npm globals (bun comes from pacman.txt)
 #   ./install.sh dirs         # create ~/Pictures, ~/Videos, … (xdg-user-dirs)
 #   ./install.sh system       # copy system/ into / with sudo (e.g. SDDM theme)
@@ -147,6 +148,10 @@ cmd_packages() {
         log "Installing Flatpaks from Flathub"
         run sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
         run sudo flatpak install --system --noninteractive flathub "${flatpaks[@]}"
+        # Sandboxed libadwaita apps can't see our GTK4 theme; the sync script
+        # copies it into every app's private config (path unit re-runs it for
+        # apps installed later — see config/systemd/user/).
+        run "$REPO/config/hypr/scripts/flatpak-gtk-sync.sh"
     fi
 }
 
@@ -278,8 +283,13 @@ ensure_locales() {
 cmd_services() {
     log "Enabling services"
     run sudo systemctl enable NetworkManager.service bluetooth.service sddm.service
+    run systemctl --user enable --now flatpak-gtk-sync.path
     run systemctl --user enable pipewire.socket pipewire-pulse.socket wireplumber.service \
         gnome-keyring-daemon.socket
+    # power profiles (waybar pill switches them)
+    if systemctl list-unit-files power-profiles-daemon.service --no-legend 2>/dev/null | grep -q .; then
+        run sudo systemctl enable --now power-profiles-daemon.service
+    fi
     # weekly refresh of pkgfile's database — zsh's command-not-found snippet
     # uses it to suggest "pacman -S <pkg>" for unknown commands
     if systemctl list-unit-files pkgfile-update.timer --no-legend 2>/dev/null | grep -q .; then
@@ -355,6 +365,20 @@ cmd_defaults() {
     if command -v xdg-settings >/dev/null && [[ -f /usr/share/applications/firefox.desktop ]]; then
         run xdg-settings set default-web-browser firefox.desktop
     fi
+}
+
+# JetBrains IDEs (Toolbox), VS Code, DBeaver, Zed, GIMP (+ Photoshop keys/layout), Inkscape (+ Illustrator keys), Obsidian: official Catppuccin plugins/extensions +
+# Macchiato themes, merged into existing settings. See the two scripts.
+cmd_ide() {
+    if [[ $DRY_RUN == 1 ]]; then echo "  [dry] jetbrains-catppuccin.py"; return; fi
+    log "JetBrains IDEs: Catppuccin Macchiato"
+    python3 "$REPO/config/hypr/scripts/jetbrains-catppuccin.py" || warn "IDE theming had problems"
+    python3 "$REPO/config/hypr/scripts/vscode-catppuccin.py" || warn "VS Code theming had problems"
+    python3 "$REPO/config/hypr/scripts/dbeaver-catppuccin.py" || warn "DBeaver theming had problems"
+    python3 "$REPO/config/hypr/scripts/zed-catppuccin.py" || warn "Zed theming had problems"
+    python3 "$REPO/config/hypr/scripts/gimp-photoshop.py" || warn "GIMP theming had problems"
+    python3 "$REPO/config/hypr/scripts/inkscape-illustrator.py" || warn "Inkscape theming had problems"
+    python3 "$REPO/config/hypr/scripts/obsidian-catppuccin.py" || warn "Obsidian theming had problems"
 }
 
 # Login shell → zsh (config: home/.zshenv + config/zsh/.zshrc). chsh asks for
@@ -470,9 +494,24 @@ cmd_theme() {
 
     log "Pointing KDE apps at the $KDE_SCHEME colour scheme"
     local app
-    for app in dolphin; do
+    for app in dolphin kate kwrite okular gwenview ark spectacle kcalc konsole \
+               kdenlive elisa filelight kolourpaint ksysguard systemsettings kdeconnect; do
         run kwriteconfig6 --file "${app}rc" --group UiSettings --key ColorScheme "$KDE_SCHEME"
     done
+    # Krita has its own theme manager (not UiSettings): pick our colour scheme by
+    # name. It rewrites kritarc on exit, so skip while it's running.
+    if pgrep -x krita >/dev/null; then
+        warn "Krita is running — close it and re-run ./install.sh theme to theme it"
+    else
+        # Krita only lists schemes from its own data dir, not ~/.local/share/color-schemes.
+        run mkdir -p "$DATA_DST/krita/color-schemes"
+        run ln -sfn "$scheme" "$DATA_DST/krita/color-schemes/$KDE_SCHEME.colors"
+        run kwriteconfig6 --file kritarc --group "<default>" --key Theme "$KDE_SCHEME"
+    fi
+    # Kate/KWrite editor area has its own syntax theme (not the Qt palette).
+    # Pin a dark one; there's no packaged Catppuccin theme.
+    run kwriteconfig6 --file katerc --group "KTextEditor Renderer" --key "Auto Color Theme Selection" false
+    run kwriteconfig6 --file katerc --group "KTextEditor Renderer" --key "Color Theme" "Breeze Dark"
 }
 
 cmd_diff() {
@@ -499,7 +538,7 @@ cmd_diff() {
 main() {
     local cmd="${1:-all}"; shift || true
     case "$cmd" in
-        all)      cmd_packages "$@"; cmd_link; cmd_dirs; cmd_system; cmd_services; cmd_shell; cmd_dev; cmd_defaults; cmd_theme ;;
+        all)      cmd_packages "$@"; cmd_link; cmd_dirs; cmd_system; cmd_services; cmd_shell; cmd_dev; cmd_defaults; cmd_ide; cmd_theme ;;
         packages) cmd_packages "$@" ;;
         link)     cmd_link ;;
         unlink)   cmd_unlink ;;
@@ -507,11 +546,12 @@ main() {
         shell)    cmd_shell ;;
         dev)      cmd_dev ;;
         defaults) cmd_defaults ;;
+        ide)      cmd_ide ;;
         dirs)     cmd_dirs ;;
         system)   cmd_system ;;
         theme)    cmd_theme ;;
         diff)     cmd_diff ;;
-        *) sed -n '2,19p' "$0"; exit 1 ;;
+        *) sed -n '2,20p' "$0"; exit 1 ;;
     esac
 }
 main "$@"

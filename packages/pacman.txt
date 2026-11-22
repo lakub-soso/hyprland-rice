@@ -18,6 +18,7 @@ qt6-wayland
 
 # --- Theming (dark + Catppuccin Macchiato) ---
 qt6ct              # Qt apps (dolphin, telegram) palette, see config/qt6ct
+qt5ct              # same palette for Qt5 apps (VLC), see config/qt5ct
 papirus-icon-theme # icon theme (Papirus-Dark); Catppuccin folders come from aur.txt
 breeze-icons       # fallback icons for KDE apps
 breeze             # Breeze Qt widget style — KDE apps (Dolphin sidebar) assume it
@@ -51,6 +52,9 @@ wireplumber
 gst-plugin-pipewire
 libpulse
 pavucontrol        # opened by clicking the waybar volume module
+
+# --- Power ---
+power-profiles-daemon   # power saver / balanced / performance (waybar pill; amd-pstate EPP)
 
 # --- Network / bluetooth ---
 networkmanager
@@ -198,6 +202,7 @@ bleachbit
 btop                       # resource monitor (TUI)
 gdu                        # disk usage (TUI, fast)
 gparted                    # partition editor (GTK)
+xorg-xhost                 # lets root GUI apps (gparted via pkexec) open on Xwayland — see hypr autostart
 partitionmanager           # partition editor (KDE)
 vim
 7zip                       # 7-Zip (CLI)
