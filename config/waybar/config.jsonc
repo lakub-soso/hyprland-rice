@@ -11,16 +11,39 @@
     "height": 30,
     "spacing": 4,
 
-    "modules-left": ["hyprland/workspaces", "hyprland/submap"],
-    "modules-center": ["hyprland/window"],
-    "modules-right": ["hyprland/language", "pulseaudio", "network", "bluetooth", "cpu", "memory", "tray", "clock#date", "clock#time"],
+    "modules-left": ["hyprland/workspaces", "hyprland/submap", "hyprland/window"],
+    "modules-center": ["clock#date", "clock#time", "mpris"],
+    "modules-right": ["hyprland/language", "custom/mic", "pulseaudio", "custom/sysmon", "tray"],
 
     "hyprland/workspaces": {
         // Show workspaces from every monitor, since this is the only bar
         "all-outputs": true
     },
+    // Focused window: app icon + "App · current tab/file". The format joins
+    // class and title; "rewrite" shortens per app (rules starting "(?:" run
+    // before the "^" fallback — Waybar applies all matching rules in
+    // alphabetical order). Hover shows the full title.
     "hyprland/window": {
-        "max-length": 60,
+        "format": "{class} · {title}",
+        "rewrite": {
+            "(?:com\\.microsoft\\.vscode|code|code-oss) · (.+?)(?: \\([^)]*\\))*(?: - .+?)? - Visual Studio Code": "VS Code · $1",
+            "(?:com\\.microsoft\\.vscode|code|code-oss) · Visual Studio Code": "VS Code",
+            "(?:firefox) · (.*) — Mozilla Firefox": "Firefox · $1",
+            "(?:firefox) · Mozilla Firefox": "Firefox",
+            "(?:librewolf) · (.*) — LibreWolf": "LibreWolf · $1",
+            "(?:org\\.kde\\.dolphin) · (.*) — Dolphin": "Dolphin · $1",
+            "(?:kitty) · (.*)": "Kitty · $1",
+            "(?:org\\.telegram\\.desktop) · .*": "Telegram",
+            "(?:spotify) · .*": "Spotify",
+            "(?:com\\.obsproject\\.studio) · OBS .*": "OBS",
+            "(?:com\\.obsproject\\.studio) · (?!OBS )(.*)": "OBS · $1",
+            "^(?:[a-z0-9_-]+\\.)+([a-z0-9_-]+) · (.*)$": "$1 · $2",
+            "^([^·]+) · (.*\\1.*)$": "$2"
+        },
+        "max-length": 50,
+        "icon": true,
+        "icon-size": 18,
+        "tooltip-format": "{title}",
         "separate-outputs": false
     },
     "tray": { "spacing": 10 },
@@ -56,29 +79,70 @@
         "format-ru": "RU",
         "on-click": "hyprctl switchxkblayout all next"
     },
-    // Bluetooth (bluez). Click: blueman-manager (pair / connect devices).
-    "bluetooth": {
-        "format": "BT",
-        "format-off": "BT off",
-        "format-disabled": "BT off",
-        "format-connected": "BT {device_alias}",
-        "format-connected-battery": "BT {device_alias} {device_battery_percentage}%",
-        "tooltip-format": "{controller_alias}: {num_connections} connected",
-        "tooltip-format-connected": "{device_enumerate}",
-        "tooltip-format-enumerate-connected": "{device_alias}",
-        "on-click": "blueman-manager"
+    // Now playing (any MPRIS player: Spotify, Firefox/YouTube, mpv, VLC…).
+    // Hidden when nothing plays. Click: play/pause · right/scroll: next ·
+    // middle: previous.
+    "mpris": {
+        "format": "{player_icon}  {dynamic}",
+        "format-paused": "{status_icon}  {dynamic}",
+        "dynamic-order": [
+            "title",
+            "artist"
+        ],
+        "dynamic-separator": " – ",
+        "dynamic-len": 45,
+        "player-icons": {
+            "default": "",
+            "spotify": "",
+            "firefox": "",
+            "chromium": "",
+            "brave": "",
+            "mpv": "",
+            "vlc": "󰕼"
+        },
+        "status-icons": {
+            "paused": ""
+        },
+        "tooltip-format": "{player}: {artist} – {title}\n{album}",
+        "on-click": "playerctl play-pause",
+        "on-click-right": "playerctl next",
+        "on-click-middle": "playerctl previous",
+        "on-scroll-up": "playerctl next",
+        "on-scroll-down": "playerctl previous"
     },
-    "cpu": { "format": "CPU {usage}%" },
-    "memory": { "format": "RAM {}%" },
-    "network": {
-        "format-wifi": "{essid} ({signalStrength}%)",
-        "format-ethernet": "{ipaddr}",
-        "format-disconnected": "offline",
-        "tooltip-format": "{ifname} via {gwaddr}"
+    // System monitor: CPU · RAM · GPU in one pill (hypr/scripts/sysmon.py).
+    // Hover: temps, load, swap, VRAM, disk… · click: Mission Center.
+    "custom/sysmon": {
+        "exec": "~/.config/hypr/scripts/sysmon.py",
+        "return-type": "json",
+        "on-click": "missioncenter",
+        "escape": false
     },
+    // Microphone: appears only while an app records from a real mic; red when
+    // live, grey when muted. Click toggles mute (same as SUPER + SHIFT + M).
+    // Event-driven (pactl subscribe) — hypr/scripts/mic.sh
+    "custom/mic": {
+        "exec": "~/.config/hypr/scripts/mic.sh",
+        "return-type": "json",
+        "on-click": "~/.config/hypr/scripts/mic.sh toggle",
+        "escape": false
+    },
+    // Volume: icon by level (low/medium/high; + headphones icon on headphones; muted). Scroll ±5 %
+    // (capped at 100 %) · click: pavucontrol · right-click: mute.
     "pulseaudio": {
-        "format": "VOL {volume}%",
-        "format-muted": "muted",
-        "on-click": "pavucontrol"
+        "format": "{icon}  {volume}%",
+        "format-muted": "󰝟  muted",
+        // level icon (low/medium/high); on headphones/headsets the headphones
+        // icon sits next to it
+        "format-icons": {
+            "headphone": ["󰋋 󰕿", "󰋋 󰖀", "󰋋 󰕾"],
+            "headset": ["󰋋 󰕿", "󰋋 󰖀", "󰋋 󰕾"],
+            "default": ["󰕿", "󰖀", "󰕾"]
+        },
+        "scroll-step": 5,
+        "max-volume": 100,
+        "on-click": "pavucontrol",
+        "on-click-right": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
+        "tooltip-format": "{desc}: {volume}%"
     }
 }

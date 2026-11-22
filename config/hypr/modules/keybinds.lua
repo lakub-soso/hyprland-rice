@@ -14,7 +14,10 @@ local function mod(keys) return mainMod .. " + " .. keys end
 cs.section("General")
 cs.bind(mod("slash"), hl.dsp.exec_cmd(cs.command), "Toggle this cheatsheet")
 cs.bind(mod("L"),     hl.dsp.exec_cmd("pidof hyprlock || hyprlock"), "Lock screen") -- config/hypr/hyprlock.conf
-cs.bind(mod("M"), hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"), "Exit Hyprland")
+-- Exit is deliberately awkward (moved off SUPER + M, next to the mic mute key);
+-- logging out normally goes through the power menu (SUPER + Esc).
+cs.bind(mod("CTRL + SHIFT + M"), hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"), "Exit Hyprland")
+cs.bind(mod("SHIFT + M"), hl.dsp.exec_cmd("~/.config/hypr/scripts/mic.sh toggle"), "Mute / unmute microphone")
 cs.bind(mod("Escape"), hl.dsp.exec_cmd(programs.power), "Power menu")
 -- keyboard layout switching is XKB (input.lua), not a Hyprland bind: list it only
 cs.note("ALT + SHIFT", "Switch layout: EN · UA · RU")
@@ -47,6 +50,13 @@ cs.bind(mod("right"), hl.dsp.focus({ direction = "right" }), "Focus right")
 cs.bind(mod("up"),    hl.dsp.focus({ direction = "up" }),    "Focus up")
 cs.bind(mod("down"),  hl.dsp.focus({ direction = "down" }),  "Focus down")
 
+-- Move the focused window within the workspace (swaps with the neighbour in
+-- that direction; at a monitor edge it moves to the next monitor)
+cs.bind(mod("SHIFT + left"),  hl.dsp.window.move({ direction = "left" }),  "Move window left")
+cs.bind(mod("SHIFT + right"), hl.dsp.window.move({ direction = "right" }), "Move window right")
+cs.bind(mod("SHIFT + up"),    hl.dsp.window.move({ direction = "up" }),    "Move window up")
+cs.bind(mod("SHIFT + down"),  hl.dsp.window.move({ direction = "down" }),  "Move window down")
+
 -- Move/resize windows with mainMod + LMB/RMB and dragging
 cs.bind(mod("mouse:272"), hl.dsp.window.drag(),   "Move window",   { mouse = true })
 cs.bind(mod("mouse:273"), hl.dsp.window.resize(), "Resize window", { mouse = true })
@@ -75,7 +85,7 @@ cs.section("Media")
 cs.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), "Volume up",       { locked = true, repeating = true })
 cs.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      "Volume down",     { locked = true, repeating = true })
 cs.bind("XF86AudioMute",        hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     "Mute",            { locked = true, repeating = true })
-cs.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   "Mute mic",        { locked = true, repeating = true })
+cs.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("~/.config/hypr/scripts/mic.sh toggle"),         "Mute mic",        { locked = true })
 cs.bind("XF86MonBrightnessUp",  hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%+"),                  "Brightness up",   { locked = true, repeating = true, hidden = true })
 cs.bind("XF86MonBrightnessDown",hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%-"),                  "Brightness down", { locked = true, repeating = true, hidden = true })
 

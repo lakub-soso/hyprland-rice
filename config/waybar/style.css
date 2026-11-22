@@ -21,23 +21,30 @@ tooltip {
 }
 tooltip label { color: @text; }
 
-/* --- left: workspaces --- */
+/* --- left: workspaces: circles in a pill --- */
 #workspaces {
     margin: 4px 6px;
-    padding: 0 4px;
+    padding: 0 3px;
     background-color: @surface0;
-    border-radius: 8px;
+    border-radius: 999px;
 }
 #workspaces button {
-    padding: 0 8px;
-    color: @overlay1;
+    min-width: 20px;
+    min-height: 20px;
+    padding: 0;
+    margin: 2px 2px;
+    border-radius: 999px;          /* square button + full radius = circle */
+    font-size: 11px;
+    color: @text;                  /* workspaces with windows */
     background: transparent;
-    border-radius: 6px;
+    box-shadow: none;
+}
+#workspaces button.empty {
+    color: @overlay0;              /* no windows */
 }
 #workspaces button:hover {
     background: @surface1;
     color: @text;
-    box-shadow: none;
 }
 #workspaces button.active {
     color: @crust;
@@ -58,27 +65,31 @@ tooltip label { color: @text; }
 
 /* --- centre: window title --- */
 #window {
+    margin-left: 8px;
     color: @subtext1;
 }
+#window image { margin-right: 6px; }   /* app icon (Papirus-Dark) */
 window#waybar.empty #window { background: transparent; }
 
 /* --- right: status modules, each a pill --- */
-#language, #pulseaudio, #network, #bluetooth, #cpu, #memory, #tray, #clock {
+#mpris, #language, #custom-mic, #pulseaudio, #custom-sysmon, #tray, #clock {
     margin: 4px 3px;
     padding: 0 10px;
     border-radius: 8px;
     background-color: @surface0;
 }
 #clock.date { color: @blue; }
-#clock.time { color: @accent; margin-right: 6px; font-weight: bold; }
+#clock.time { color: @accent; font-weight: bold; }
+#mpris      { color: @pink; }
+#mpris.paused { color: @overlay1; font-style: italic; }
+#tray       { margin-right: 6px; }
 #language   { color: @mauve; font-weight: bold; }
+#custom-mic.live  { color: @red; }       /* mic is hot */
+#custom-mic.muted { color: @overlay1; }
 #pulseaudio { color: @blue; }
+#custom-sysmon          { color: @text; }      /* icons are coloured in the text itself */
+#custom-sysmon.warning  { color: @yellow; }
+#custom-sysmon.critical { color: @red; }
 #pulseaudio.muted { color: @overlay0; }
-#network    { color: @teal; }
-#network.disconnected { color: @red; }
-#bluetooth  { color: @sapphire; }
-#bluetooth.off, #bluetooth.disabled { color: @overlay0; }
-#cpu        { color: @green; }
-#memory     { color: @yellow; }
 
 #tray > .needs-attention { background-color: @red; }
