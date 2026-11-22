@@ -87,6 +87,30 @@ end
 hl.on("window.open",   pinToolbox)
 hl.on("window.active", pinToolbox)
 
+-- Steam games (Proton and Steam-launched: class steam_app_<appid>) open
+-- fullscreen. Many of them do "borderless fullscreen" by sizing themselves to
+-- the screen or sending a maximize request (suppressed above), never a real
+-- fullscreen request, so in a tiling WM they'd end up as a tile.
+-- Only tiled windows: launchers, splash screens and dialogs float, and
+-- they're left alone. idle_inhibit: no screen lock/sleep mid-game.
+hl.window_rule({
+    name  = "steam-games-fullscreen",
+    match = { class = "^(steam_app_\\d+)$", float = false },
+
+    fullscreen   = true,
+    idle_inhibit = "fullscreen",
+})
+
+-- Switching away (Alt+Tab to Steam, launching an app) un-fullscreens the game;
+-- going back to it makes it fullscreen again. Super+Shift+F still un-fullscreens
+-- it for as long as it stays focused.
+hl.on("window.active", function(w)
+    if w and not w.floating and (w.fullscreen or 0) == 0
+        and tostring(w.class or ""):match("^steam_app_%d+$") then
+        hl.dispatch(hl.dsp.window.fullscreen())
+    end
+end)
+
 -- Hyprland-run windowrule
 hl.window_rule({
     name  = "move-hyprland-run",

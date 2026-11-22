@@ -16,6 +16,20 @@ hl.config({
 
 
 ----------------
+---- RENDER ----
+----------------
+
+hl.config({
+    render = {
+        -- Hyprland switches the monitor into HDR whenever a fullscreen window
+        -- asks for it (default 1).
+        -- Set to 1 to get auto-HDR back for real HDR games.
+        cm_auto_hdr = 0,
+    },
+})
+
+
+----------------
 ---- LAYERS ----
 ----------------
 

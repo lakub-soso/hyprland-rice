@@ -43,6 +43,15 @@ local closeWindowBind = cs.bind(mod("Q"), hl.dsp.window.close(), "Close window")
 -- closeWindowBind:set_enabled(false)
 cs.bind(mod("SHIFT + Q"), hl.dsp.window.kill(), "Force-kill window (SIGKILL)")
 cs.bind(mod("F"), hl.dsp.window.float({ action = "toggle" }), "Toggle floating")
+cs.bind(mod("SHIFT + F"), hl.dsp.window.fullscreen(),          "Toggle fullscreen")
+-- Alt+Tab: next window on this workspace, raised (e.g. game → Steam).
+-- Focusing a window under a fullscreen one un-fullscreens it (default
+-- misc.on_focus_under_fullscreen); Steam games go fullscreen again when
+-- focused (rules.lua).
+cs.bind("ALT + Tab", function()
+    hl.dispatch(hl.dsp.window.cycle_next())
+    hl.dispatch(hl.dsp.window.bring_to_top())
+end, "Switch to next window")
 cs.bind(mod("P"), hl.dsp.window.pseudo(),                     "Pseudo-tile")
 cs.bind(mod("J"), hl.dsp.layout("togglesplit"),               "Toggle split direction") -- dwindle only
 
