@@ -78,6 +78,11 @@ noto-fonts-cjk
 noto-fonts-emoji
 ttf-dejavu
 ttf-liberation
+ttf-jetbrains-mono
+ttf-roboto
+ttf-croscore               # Arimo/Tinos/Cousine: metric-compatible Arial/Times/Courier
+ttf-droid
+noto-fonts-extra           # extra Noto weights/widths
 # also: noto-fonts-emoji / noto-fonts-cjk above cover emoji + Chinese/Japanese/Korean;
 # Microsoft core fonts (Arial, Times New Roman, Verdana…) are ttf-ms-fonts in aur.txt
 
@@ -101,6 +106,7 @@ flatpak                    # apps in packages/flatpak.txt (Bazaar store, Dev Too
 firefox
 librewolf
 torbrowser-launcher        # Tor Browser (downloads + verifies the official build)
+epiphany                   # GNOME Web (WebKit) — Safari-engine testing
 
 # --- Chat ---
 telegram-desktop
@@ -114,6 +120,7 @@ bitwarden
 # --- Development ---
 dbeaver
 zed
+android-tools              # adb / fastboot
 jq                         # JSON on the CLI (DevToys-style formatting/querying)
 yq                         # YAML/XML/TOML on the CLI
 bun                        # Bun JS runtime/package manager (globals go to ~/.bun/bin). Node: nvm, see ./install.sh dev
@@ -124,6 +131,8 @@ collision     # hash generate/compare (extra)
 # --- Network / transfer ---
 filezilla
 qbittorrent
+transmission-qt
+networkmanager-openvpn     # import .ovpn VPN profiles in NetworkManager
 proton-vpn-gtk-app         # Proton VPN
 tailscale
 putty                      # (plain `ssh` in a terminal also works)
@@ -155,6 +164,9 @@ vlc
 vlc-plugins-all
 audacity
 kdenlive
+yt-dlp                     # download video/audio from YouTube & co
+ffmpeg
+cava                       # terminal audio visualiser
 # Spotify: spotify in aur.txt
 gwenview                   # ImageGlass
 
@@ -183,6 +195,11 @@ vulkan-tools               # vulkaninfo, for debugging
 
 # --- Utilities ---
 bleachbit
+btop                       # resource monitor (TUI)
+gdu                        # disk usage (TUI, fast)
+gparted                    # partition editor (GTK)
+partitionmanager           # partition editor (KDE)
+vim
 7zip                       # 7-Zip (CLI)
 ark                        # 7-Zip File Manager (KDE archive GUI, integrates with Dolphin)
 filelight                  # WizTree (disk usage)
