@@ -1,0 +1,41 @@
+/* Wallpaper picker (SUPER + W, scripts/wallpaper.py): grid of thumbnails,
+   name underneath, selected one framed in mauve.
+   NOTE: one quoted string per line — rofi's parser breaks on two. */
+@import "macchiato"
+
+window {
+    width: 1180px;
+}
+
+mainbox {
+    children: [ inputbar, message, listview ];
+}
+
+listview {
+    columns:      4;
+    lines:        3;
+    flow:         horizontal;
+    fixed-height: true;
+    spacing:      12px;
+    scrollbar:    false;
+}
+
+element {
+    orientation:   vertical;
+    padding:       10px;
+    spacing:       8px;
+    border:        2px;
+    border-radius: 10px;
+    border-color:  transparent;
+}
+element selected.normal {
+    border-color:     @mauve;
+    background-color: @surface0;
+}
+element-icon {
+    size:            240px;
+    horizontal-align: 0.5;
+}
+element-text {
+    horizontal-align: 0.5;
+}

@@ -204,6 +204,7 @@ vulkan-tools               # vulkaninfo, for debugging
 bleachbit
 btop                       # resource monitor (TUI)
 gdu                        # disk usage (TUI, fast)
+libvips                    # vipsthumbnail: wallpaper picker thumbnails
 gparted                    # partition editor (GTK)
 xorg-xhost                 # lets root GUI apps (gparted via pkexec) open on Xwayland — see hypr autostart
 partitionmanager           # partition editor (KDE)

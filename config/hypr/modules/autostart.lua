@@ -13,7 +13,8 @@ hl.on("hyprland.start", function ()
    hl.exec_cmd("nm-applet")
    hl.exec_cmd("solaar --window=hide")   -- Logitech devices: tray icon only
    hl.exec_cmd("gnome-keyring-daemon --start --components=secrets")
-   hl.exec_cmd("waybar & hyprpaper")
+   -- hyprpaper via the wallpaper picker: starts it with the last picked wallpaper
+   hl.exec_cmd("waybar & ~/.config/rofi/scripts/wallpaper.py --start")
    -- Root GUI apps started via pkexec (gparted) are X11 and run as root, which
    -- Xwayland refuses ("no authorization protocol specified"). Allow only
    -- local root, nothing else.

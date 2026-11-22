@@ -17,6 +17,8 @@ config/          mirrors ~/.config — every file here is symlinked into place
 data/            mirrors ~/.local/share — symlinked the same way
   wallpapers/wallhaven-ly3x32.png   desktop (hypr/hyprpaper.conf) + login
                  screen wallpaper — https://wallhaven.cc/w/ly3x32
+                 SUPER + W opens the wallpaper picker (rofi/scripts/wallpaper.py):
+                 images from here + ~/Pictures/Wallpapers, choice remembered
   color-schemes/CatppuccinMacchiatoMauve.colors
                  KDE colour scheme. KDE apps (Dolphin) ignore qt6ct, so
                  `./install.sh theme` merges this into ~/.config/kdeglobals and
