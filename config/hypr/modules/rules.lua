@@ -105,20 +105,20 @@ local function isBigGame(w)
     return s.x >= 0.8 * m.width or s.y >= 0.8 * m.height
 end
 
--- hl.on("window.active", function(w)
---     -- acts on the active window, i.e. w (window.open fires before focus moves)
---     if w and (w.fullscreen or 0) == 0 and isBigGame(w) then
---         hl.dispatch(hl.dsp.window.fullscreen())
---     end
--- end)
+hl.on("window.active", function(w)
+    -- acts on the active window, i.e. w (window.open fires before focus moves)
+    if w and (w.fullscreen or 0) == 0 and isBigGame(w) then
+        hl.dispatch(hl.dsp.window.fullscreen())
+    end
+end)
 
--- -- no screen lock/sleep while a game is fullscreen
--- hl.window_rule({
---     name  = "steam-games-idle-inhibit",
---     match = { class = "^(steam_app_\\d+)$" },
+-- no screen lock/sleep while a game is fullscreen
+hl.window_rule({
+    name  = "steam-games-idle-inhibit",
+    match = { class = "^(steam_app_\\d+)$" },
 
---     idle_inhibit = "fullscreen",
--- })
+    idle_inhibit = "fullscreen",
+})
 
 -- Hyprland-run windowrule
 hl.window_rule({
