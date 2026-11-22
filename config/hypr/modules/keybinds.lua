@@ -46,8 +46,7 @@ cs.bind(mod("F"), hl.dsp.window.float({ action = "toggle" }), "Toggle floating")
 cs.bind(mod("SHIFT + F"), hl.dsp.window.fullscreen(),          "Toggle fullscreen")
 -- Alt+Tab: next window on this workspace, raised (e.g. game → Steam).
 -- Focusing a window under a fullscreen one un-fullscreens it (default
--- misc.on_focus_under_fullscreen); Steam games go fullscreen again when
--- focused (rules.lua).
+-- misc.on_focus_under_fullscreen); SUPER + SHIFT + F makes it fullscreen again.
 cs.bind("ALT + Tab", function()
     hl.dispatch(hl.dsp.window.cycle_next())
     hl.dispatch(hl.dsp.window.bring_to_top())

@@ -20,8 +20,11 @@ hl.config({
         -- Set to true to enable resizing windows by clicking and dragging on borders and gaps
         resize_on_border = false,
 
-        -- Please see https://wiki.hypr.land/configuring/extra/tearing/ before you turn this on
-        allow_tearing = false,
+        -- Lets windows with the `immediate` rule (games, rules.lua) tear:
+        -- frames go out as soon as they're ready (lowest input lag) instead
+        -- of waiting for vblank. Only fullscreen windows with that rule tear.
+        -- https://wiki.hypr.land/configuring/extra/tearing/
+        allow_tearing = true,
 
         layout = "dwindle",
     },

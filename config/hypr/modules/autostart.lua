@@ -19,7 +19,15 @@ hl.on("hyprland.start", function ()
    -- Xwayland refuses ("no authorization protocol specified"). Allow only
    -- local root, nothing else.
    hl.exec_cmd("xhost +si:localuser:root")
+   -- X11/Proton games open on XWayland's primary output: make it the main monitor
+   hl.exec_cmd("~/.config/hypr/scripts/xwayland-primary.sh")
    -- Clipboard history (SUPER + V): record text and images with cliphist
    hl.exec_cmd("wl-paste --type text --watch cliphist store")
    hl.exec_cmd("wl-paste --type image --watch cliphist store")
+end)
+
+-- Re-apply XWayland's primary output when a monitor is plugged in
+-- (scripts/xwayland-primary.sh).
+hl.on("monitor.added", function()
+    hl.exec_cmd("~/.config/hypr/scripts/xwayland-primary.sh")
 end)
