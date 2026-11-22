@@ -47,5 +47,6 @@ element {
    selection invisible (it showed as a box around the first header) */
 element selected.normal, element selected.active, element selected.urgent {
     background-color: transparent;
-    border:           0;
+    border-color:     transparent;   /* keep the 1px border width: no row shift */
+    text-color:       @text;
 }

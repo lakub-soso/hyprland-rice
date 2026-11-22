@@ -26,7 +26,8 @@ cs.section("Apps")
 cs.bind(mod("space"), hl.dsp.exec_cmd(programs.menu),        "Launcher: apps · calc · files · windows")
 cs.bind(mod("V"),     hl.dsp.exec_cmd(programs.clipboard),   "Clipboard history")
 -- rofi-emoji: Enter types the emoji into the focused window (wtype) + copies it
-cs.bind(mod("period"), hl.dsp.exec_cmd("pkill -x rofi || rofi -modi emoji -show emoji"), "Emoji picker")
+-- no icon column (emoji have no icons → empty 24px slot) and no one-tab mode bar
+cs.bind(mod("period"), hl.dsp.exec_cmd("pkill -x rofi || rofi -modi emoji -show emoji -no-show-icons -theme-str 'mainbox { children: [ inputbar, message, listview ]; }'"), "Emoji picker")
 cs.bind(mod("SHIFT + C"), hl.dsp.exec_cmd("~/.config/hypr/scripts/colorpicker.sh"), "Color picker (copies hex)")
 cs.bind(mod("T"),     hl.dsp.exec_cmd(programs.terminal),    "Terminal")
 cs.bind(mod("E"),     hl.dsp.exec_cmd(programs.fileManager), "File manager")

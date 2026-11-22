@@ -342,6 +342,13 @@ cmd_theme() {
         warn "papirus-folders not installed — run ./install.sh packages first"
     fi
 
+    # Catppuccin tray icons for nm-applet / blueman (generated from Papirus into
+    # ~/.local/share/icons/Papirus-Dark; see the script for why)
+    if [[ -d /usr/share/icons/Papirus-Dark ]]; then
+        log "Recolouring network/Bluetooth tray icons (Catppuccin)"
+        run python3 "$REPO/config/hypr/scripts/recolor-tray-icons.py"
+    fi
+
     log "Applying dark theme settings (gsettings)"
     run gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
     run gsettings set org.gnome.desktop.interface gtk-theme    "$GTK_THEME"

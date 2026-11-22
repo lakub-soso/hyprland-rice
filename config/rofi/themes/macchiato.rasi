@@ -71,6 +71,8 @@ listview {
 element {
     padding:       6px 10px;
     spacing:       10px;
+    border:        1px;              /* always 1px (transparent when unselected) */
+    border-color:  transparent;      /* so the selected row doesn't shift */
     border-radius: 8px;
     cursor:        pointer;
 }
@@ -78,8 +80,7 @@ element normal.normal, element alternate.normal { background-color: transparent;
 element selected.normal {
     background-color: @surface0;
     text-color:       @mauve;
-    border:           0 0 0 3px;
-    border-color:     @blue;
+    border-color:     @mauve;        /* solid outline all round */
 }
 element-icon { size: 24px; background-color: inherit; }
 element-text { vertical-align: 0.5; text-color: inherit; background-color: inherit; }
