@@ -7,6 +7,7 @@
 #   ./install.sh link         # symlink config/* into ~/.config (backs up existing)
 #   ./install.sh unlink       # remove symlinks that point into this repo
 #   ./install.sh services     # enable system/user services
+#   ./install.sh snapshots    # btrfs snapshots: snapper (root + home), snap-pac, timers (sudo)
 #   ./install.sh shell        # make zsh the login shell (asks your password)
 #   ./install.sh defaults     # default apps (DEFAULT_APPS: mpv, Gwenview, Dolphin, Kate…)
 #   ./install.sh ide          # Catppuccin for JetBrains IDEs, VS Code, DBeaver (merged into existing settings)
@@ -514,6 +515,97 @@ cmd_theme() {
     run kwriteconfig6 --file katerc --group "KTextEditor Renderer" --key "Color Theme" "Breeze Dark"
 }
 
+# btrfs snapshots with snapper (needs sudo):
+#   root  → top-level subvolume @snapshots mounted at /.snapshots (not nested in
+#           @, so `snapper rollback` / restoring @ from a live USB keeps them).
+#           Hourly timeline + a pre/post pair around every pacman transaction
+#           (snap-pac).
+#   home  → /home/.snapshots (nested in @home): hourly timeline, for getting
+#           back deleted/overwritten files.
+SNAP_ROOT_LIMITS=(TIMELINE_LIMIT_HOURLY=3 TIMELINE_LIMIT_DAILY=5 TIMELINE_LIMIT_WEEKLY=2
+                  TIMELINE_LIMIT_MONTHLY=0 TIMELINE_LIMIT_YEARLY=0
+                  NUMBER_LIMIT=10-30 NUMBER_LIMIT_IMPORTANT=3-5
+                  SPACE_LIMIT=0.2 FREE_LIMIT=0.2)
+SNAP_HOME_LIMITS=(TIMELINE_LIMIT_HOURLY=2-12 TIMELINE_LIMIT_DAILY=3-7 TIMELINE_LIMIT_WEEKLY=1-4
+                  TIMELINE_LIMIT_MONTHLY=0 TIMELINE_LIMIT_YEARLY=0
+                  SPACE_LIMIT=0.2 FREE_LIMIT=0.2)
+# Home dirs turned into their own subvolumes, so home snapshots skip them
+# (btrfs snapshots stop at subvolume boundaries). Big, re-downloadable, churny.
+SNAP_HOME_EXCLUDE=(.cache .local/share/Steam Games Downloads .ollama .local/share/bottles)
+
+# Turn ~/<dir> into a subvolume in place (reflink copy, so instant and no extra
+# space). Skips dirs already subvolumes; refuses while Steam runs.
+home_subvol() {
+    local d="$HOME/$1"
+    if [[ -e $d ]] && btrfs subvolume show "$d" >/dev/null 2>&1; then return; fi
+    if [[ $1 == *Steam* ]] && pgrep -x steam >/dev/null; then
+        warn "Steam is running — close it and re-run to exclude ~/$1 from snapshots"; return
+    fi
+    log "~/$1 → own subvolume (excluded from home snapshots)"
+    run mkdir -p "$(dirname "$d")"
+    if [[ ! -e $d ]]; then run btrfs subvolume create "$d"; return; fi
+    run btrfs subvolume create "$d.subvol-new"
+    run cp -a --reflink=always "$d/." "$d.subvol-new/"
+    run mv "$d" "$d.subvol-old"
+    run mv "$d.subvol-new" "$d"
+    run rm -rf "$d.subvol-old"
+}
+cmd_snapshots() {
+    if [[ $(findmnt -no FSTYPE /) != btrfs ]]; then warn "/ is not btrfs — skipping snapshots"; return; fi
+    if ! command -v snapper >/dev/null && [[ $DRY_RUN != 1 ]]; then
+        warn "snapper not installed — run ./install.sh packages --hardware first"; return
+    fi
+    local dev uuid top
+    dev="$(findmnt -no SOURCE / | sed 's/\[.*//')"
+    uuid="$(findmnt -no UUID /)"
+
+    if [[ ! -f /etc/snapper/configs/root ]]; then
+        log "snapper: root config + @snapshots subvolume"
+        # create-config makes a nested /.snapshots subvolume; swap it for @snapshots
+        run sudo snapper -c root create-config /
+        run sudo btrfs subvolume delete /.snapshots
+        run sudo mkdir -p /.snapshots
+        top="$(mktemp -d)"
+        run sudo mount -o subvolid=5 "$dev" "$top"
+        if [[ $DRY_RUN == 1 ]] || ! sudo test -d "$top/@snapshots"; then
+            run sudo btrfs subvolume create "$top/@snapshots"
+        fi
+        run sudo umount "$top"; rmdir "$top"
+        if ! grep -q 'subvol=/@snapshots' /etc/fstab; then
+            log "Adding /.snapshots to /etc/fstab"
+            run sudo cp -a /etc/fstab /etc/fstab.rice-bak
+            local opts; opts="$(findmnt -no OPTIONS / | sed -E 's/(^|,)subvol(id)?=[^,]*//g; s/^,//')"
+            [[ $DRY_RUN == 1 ]] && echo "  [dry] append: UUID=$uuid /.snapshots btrfs $opts,subvol=/@snapshots 0 0" \
+                || printf 'UUID=%s\t/.snapshots\tbtrfs     \t%s,subvol=/@snapshots\t0 0\n' "$uuid" "$opts" | sudo tee -a /etc/fstab >/dev/null
+            run sudo systemctl daemon-reload
+        fi
+        run sudo mount /.snapshots
+        run sudo chmod 750 /.snapshots
+    fi
+    if [[ ! -f /etc/snapper/configs/home ]] && findmnt -no FSTYPE /home | grep -q btrfs; then
+        log "snapper: home config"
+        run sudo snapper -c home create-config /home
+    fi
+
+    if findmnt -no FSTYPE /home | grep -q btrfs; then
+        local x; for x in "${SNAP_HOME_EXCLUDE[@]}"; do home_subvol "$x"; done
+    fi
+
+    log "snapper: retention limits + wheel read access"
+    run sudo snapper -c root set-config "${SNAP_ROOT_LIMITS[@]}" TIMELINE_CREATE=yes ALLOW_GROUPS=wheel SYNC_ACL=yes
+    [[ -f /etc/snapper/configs/home || $DRY_RUN == 1 ]] && \
+        run sudo snapper -c home set-config "${SNAP_HOME_LIMITS[@]}" TIMELINE_CREATE=yes ALLOW_GROUPS=wheel SYNC_ACL=yes
+    run sudo systemctl enable --now snapper-timeline.timer snapper-cleanup.timer
+
+    # keep locate from indexing every snapshot
+    if [[ -f /etc/updatedb.conf ]] && ! grep -q '\.snapshots' /etc/updatedb.conf; then
+        run sudo sed -i -E 's/^(PRUNENAMES *= *")/\1.snapshots /' /etc/updatedb.conf
+    fi
+    if [[ $DRY_RUN != 1 ]] && ! sudo snapper -c root list --columns description 2>/dev/null | grep -q 'rice: baseline'; then
+        run sudo snapper -c root create -c important -d "rice: baseline"
+    fi
+}
+
 cmd_diff() {
     local tracked
     tracked="$(cat "$REPO"/packages/{pacman,aur,hardware}.txt | sed -e 's/#.*//' -e 's/[[:space:]]*$//' -e '/^$/d' | sort -u)"
@@ -538,11 +630,12 @@ cmd_diff() {
 main() {
     local cmd="${1:-all}"; shift || true
     case "$cmd" in
-        all)      cmd_packages "$@"; cmd_link; cmd_dirs; cmd_system; cmd_services; cmd_shell; cmd_dev; cmd_defaults; cmd_ide; cmd_theme ;;
+        all)      cmd_packages "$@"; cmd_link; cmd_dirs; cmd_system; cmd_services; cmd_snapshots; cmd_shell; cmd_dev; cmd_defaults; cmd_ide; cmd_theme ;;
         packages) cmd_packages "$@" ;;
         link)     cmd_link ;;
         unlink)   cmd_unlink ;;
         services) cmd_services ;;
+        snapshots) cmd_snapshots ;;
         shell)    cmd_shell ;;
         dev)      cmd_dev ;;
         defaults) cmd_defaults ;;

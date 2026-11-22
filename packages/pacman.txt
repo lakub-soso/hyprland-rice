@@ -209,6 +209,11 @@ vim
 ark                        # 7-Zip File Manager (KDE archive GUI, integrates with Dolphin)
 filelight                  # WizTree (disk usage)
 
+# --- btrfs snapshots (./install.sh snapshots; skipped if / isn't btrfs) ---
+snapper
+snap-pac                   # snapshot before/after every pacman transaction
+btrfs-assistant            # GUI to browse / diff / restore snapshots
+
 # --- Hardware monitoring ---
 mission-center             # HWMonitor / Task Manager
 cpu-x                      # CPU-Z
