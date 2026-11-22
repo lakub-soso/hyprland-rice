@@ -43,6 +43,7 @@ onlyoffice-bin
 #   builds it (install_davinci in install.sh).
 
 # --- Media ---
+mpv-uosc                         # modern mpv controls (Catppuccin colours in config/mpv/mpv.conf)
 spotify                          # repackages Spotify's official .deb (repository.spotify.com), signature-verified
 
 # --- Games ---

@@ -8,6 +8,7 @@
 #   ./install.sh unlink       # remove symlinks that point into this repo
 #   ./install.sh services     # enable system/user services
 #   ./install.sh shell        # make zsh the login shell (asks your password)
+#   ./install.sh defaults     # default apps (DEFAULT_APPS: mpv, Gwenview, Dolphin, Kate…)
 #   ./install.sh dev          # nvm + Node LTS + npm globals (bun comes from pacman.txt)
 #   ./install.sh dirs         # create ~/Pictures, ~/Videos, … (xdg-user-dirs)
 #   ./install.sh system       # copy system/ into / with sudo (e.g. SDDM theme)
@@ -25,6 +26,32 @@ LINK_TREES=("$REPO/config:$CONFIG_DST" "$REPO/data:$DATA_DST" "$REPO/home:$HOME"
 KDE_SCHEME="CatppuccinMacchiatoMauve"
 ICON_THEME="Papirus-Dark"
 GTK_THEME="catppuccin-macchiato-mauve-standard+default"   # from catppuccin-gtk-theme-macchiato
+# Default apps: "<desktop file>:<MIME prefixes>" — every type the app's .desktop
+# file declares under those prefixes (./install.sh defaults)
+# Default apps (./install.sh defaults). "<desktop file>:<specs>", applied in
+# order — later entries win. Each spec is:
+#   *        every type the app's .desktop file declares
+#   prefix/  declared types under that prefix (e.g. video/)
+#   a/b      that exact type, declared or not
+DEFAULT_APPS=(
+    "mpv.desktop:video/ audio/"
+    "org.kde.gwenview.desktop:image/"
+    "org.kde.dolphin.desktop:inode/directory"
+    "org.kde.ark.desktop:* application/x-rar"
+    # ONLYOFFICE declares PDF/EPUB/DjVu too — it goes before Okular so Okular wins those
+    "onlyoffice-desktopeditors.desktop:* text/csv"
+    # text & code → Kate (after ONLYOFFICE, which also declares text/plain) (Notepad replacement; it declares almost nothing itself)
+    "org.kde.kate.desktop:text/plain text/markdown text/x-python text/x-python3 text/x-shellscript application/x-shellscript text/x-csrc text/x-chdr text/x-c++src text/x-c++hdr text/x-java text/x-go text/x-rust text/rust text/javascript application/javascript text/x-typescript application/typescript text/css text/x-scss application/json application/xml text/xml application/x-yaml text/x-yaml application/toml text/x-toml text/x-log application/x-desktop text/x-ini"
+    "okularApplication_pdf.desktop:*"
+    "okularApplication_epub.desktop:*"
+    "okularApplication_djvu.desktop:*"
+    "okularApplication_comicbook.desktop:*"
+    "firefox.desktop:x-scheme-handler/http x-scheme-handler/https text/html application/xhtml+xml"
+    "proton-mail.desktop:x-scheme-handler/mailto"        # mailto: links → Proton Mail
+    "org.mozilla.Thunderbird.desktop:message/rfc822"     # .eml files (Proton Mail can't open them)
+    "org.gnome.Calendar.desktop:text/calendar"
+    "org.qbittorrent.qBittorrent.desktop:application/x-bittorrent x-scheme-handler/magnet"
+)
 NPM_GLOBALS=(@angular/cli @nestjs/cli azurite)   # installed by `./install.sh dev`
 FOLDER_COLOR="cat-macchiato-mauve"   # from papirus-folders-catppuccin-git
 DRY_RUN="${DRY_RUN:-0}"
@@ -293,6 +320,43 @@ cmd_dev() {
     ' _ "${NPM_GLOBALS[@]}" || warn "Node setup failed"
 }
 
+# Default apps via xdg-mime (writes ~/.config/mimeapps.list). That file is
+# not symlinked: apps and "set as default" buttons write to it too.
+cmd_defaults() {
+    local entry desktop specs file spec p
+    local -a types declared
+    for entry in "${DEFAULT_APPS[@]}"; do
+        desktop="${entry%%:*}"; specs="${entry#*:}"
+        file=""
+        for p in "$DATA_DST/applications" /usr/local/share/applications /usr/share/applications; do
+            [[ -f $p/$desktop ]] && { file="$p/$desktop"; break; }
+        done
+        if [[ -z $file ]]; then
+            warn "$desktop not installed — skipping its defaults"
+            continue
+        fi
+        mapfile -t declared < <(sed -n 's/^MimeType=//p' "$file" | tr ';' '\n' | sed '/^$/d')
+        types=()
+        # read -ra, not `for spec in $specs`: an unquoted * would glob into
+        # file names (that bug once wrote "README.md=…" into mimeapps.list)
+        local -a spec_list
+        read -ra spec_list <<<"$specs"
+        for spec in "${spec_list[@]}"; do
+            case $spec in
+                '*') types+=("${declared[@]}") ;;
+                */)  for p in "${declared[@]}"; do [[ $p == "$spec"* ]] && types+=("$p"); done ;;
+                *)   types+=("$spec") ;;
+            esac
+        done
+        ((${#types[@]})) || continue
+        log "Default for ${#types[@]} types: $desktop"
+        run xdg-mime default "$desktop" "${types[@]}"
+    done
+    if command -v xdg-settings >/dev/null && [[ -f /usr/share/applications/firefox.desktop ]]; then
+        run xdg-settings set default-web-browser firefox.desktop
+    fi
+}
+
 # Login shell → zsh (config: home/.zshenv + config/zsh/.zshrc). chsh asks for
 # your password. Takes effect at next login (new terminals pick it up then).
 cmd_shell() {
@@ -347,6 +411,19 @@ cmd_theme() {
     if [[ -d /usr/share/icons/Papirus-Dark ]]; then
         log "Recolouring network/Bluetooth tray icons (Catppuccin)"
         run python3 "$REPO/config/hypr/scripts/recolor-tray-icons.py"
+    fi
+
+    # uosc (mpv controls) installs to /usr/share/mpv, which mpv doesn't load
+    # from: link the script + its icon fonts into ~/.config/mpv as its README
+    # says. Colours are in config/mpv/mpv.conf.
+    if [[ -d /usr/share/mpv/scripts/uosc ]]; then
+        log "Linking uosc into ~/.config/mpv"
+        run mkdir -p "$CONFIG_DST/mpv/scripts" "$CONFIG_DST/mpv/fonts"
+        run ln -sfn /usr/share/mpv/scripts/uosc "$CONFIG_DST/mpv/scripts/uosc"
+        local font
+        for font in /usr/share/mpv/fonts/uosc_*; do
+            [[ -e $font ]] && run ln -sfn "$font" "$CONFIG_DST/mpv/fonts/$(basename "$font")"
+        done
     fi
 
     log "Applying dark theme settings (gsettings)"
@@ -422,18 +499,19 @@ cmd_diff() {
 main() {
     local cmd="${1:-all}"; shift || true
     case "$cmd" in
-        all)      cmd_packages "$@"; cmd_link; cmd_dirs; cmd_system; cmd_services; cmd_shell; cmd_dev; cmd_theme ;;
+        all)      cmd_packages "$@"; cmd_link; cmd_dirs; cmd_system; cmd_services; cmd_shell; cmd_dev; cmd_defaults; cmd_theme ;;
         packages) cmd_packages "$@" ;;
         link)     cmd_link ;;
         unlink)   cmd_unlink ;;
         services) cmd_services ;;
         shell)    cmd_shell ;;
         dev)      cmd_dev ;;
+        defaults) cmd_defaults ;;
         dirs)     cmd_dirs ;;
         system)   cmd_system ;;
         theme)    cmd_theme ;;
         diff)     cmd_diff ;;
-        *) sed -n '2,18p' "$0"; exit 1 ;;
+        *) sed -n '2,19p' "$0"; exit 1 ;;
     esac
 }
 main "$@"
