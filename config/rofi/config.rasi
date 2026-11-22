@@ -8,7 +8,9 @@ configuration {
     icon-theme:          "Papirus-Dark";
     terminal:            "kitty";
     drun-display-format: "{name}";
-    matching:            "fuzzy";
+    matching:            "fuzzy";   /* flfx finds Firefox */
+    tokenize:            true;      /* words in any order: manager file */
+    normalize-match:     true;      /* ignore accents: cafe finds café */
     sort:                true;
     sorting-method:      "fzf";
 

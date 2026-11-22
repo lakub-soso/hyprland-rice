@@ -142,17 +142,30 @@ def record_recent(app_id):
 
 
 RECENT_TAG = '<span size="small" foreground="#6e738d">  recent</span>'
+SUBTITLE = '<span size="small" foreground="#6e738d">  {}</span>'
 
 
 def row(app_id, e, recent=False):
-    meta = " ".join(filter(None, [e.get("GenericName", ""),
-                                  e.get("Keywords", "").replace(";", " "), app_id]))
     name = html.escape(e["Name"], quote=False)
+    generic = e.get("GenericName", "")
+    # Hidden search terms (rofi "meta"): the generic name ("File Manager"), the
+    # description (Comment: "Manage your files"), keywords and categories — so
+    # fuzzy search finds apps by what they do, not only by their name.
+    meta = " ".join(filter(None, [
+        generic, e.get("Comment", ""),
+        e.get("Keywords", "").replace(";", " "),
+        e.get("Categories", "").replace(";", " "), app_id]))
     opts = dict(icon=e.get("Icon", "application-x-executable"), info=app_id, meta=meta)
+    # `display` only changes what's shown (search uses the plain name + meta):
+    # the generic name as a grey subtitle shows why a search matched, and the
+    # "recent" tag doesn't make "rec" match every recent app.
+    display = name
+    if generic and generic.casefold() != e["Name"].casefold():
+        display += SUBTITLE.format(html.escape(generic, quote=False))
     if recent:
-        # `display` only changes what's shown; search still uses the plain name,
-        # so typing "rec" doesn't match every recent app
-        opts["display"] = name + RECENT_TAG
+        display += RECENT_TAG
+    if display != name:
+        opts["display"] = display
     out(name, **opts)
 
 
