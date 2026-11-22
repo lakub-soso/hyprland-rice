@@ -12,6 +12,7 @@
 #   ./install.sh defaults     # default apps (DEFAULT_APPS: mpv, Gwenview, Dolphin, Kate…)
 #   ./install.sh ide          # Catppuccin for JetBrains IDEs, VS Code, DBeaver (merged into existing settings)
 #   ./install.sh dev          # nvm + Node LTS + npm globals (bun comes from pacman.txt)
+#   ./install.sh ai           # Claude Code + Codex + rtk (native installers) + agent skills (packages/skills.txt)
 #   ./install.sh dirs         # create ~/Pictures, ~/Videos, … (xdg-user-dirs)
 #   ./install.sh system       # copy system/ into / with sudo (e.g. SDDM theme)
 #   ./install.sh theme        # apply dark-mode gsettings (dconf)
@@ -606,6 +607,72 @@ cmd_snapshots() {
     fi
 }
 
+# AI coding agents. Claude Code + Codex (+ rtk) via their upstream native installers
+# (the method both recommend): checksum-verified binaries in ~/.local/bin
+# (already on PATH, config/zsh/.zshrc) that update themselves — so not in the
+# package lists. Then the shared agent skills from packages/skills.txt via the
+# skills.sh CLI, globally into ~/.agents/skills and linked into both agents
+# (needs node — run ./install.sh dev first). Safe to re-run.
+SKILL_AGENTS=(claude-code codex)
+AGENT_INSTALLERS=("claude|https://claude.ai/install.sh|bash"
+                  "codex|https://chatgpt.com/codex/install.sh|sh"
+                  "rtk|https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh|sh")
+# rtk (rtk-ai/rtk): compresses command output (git, tests, builds…) before the
+# agent reads it. `rtk init -g` adds a shell-command hook to each agent's
+# global config; `rtk gain` shows the savings. Re-run the installer to update.
+RTK_INIT=("" "--codex")   # Claude Code, Codex
+install_agent_clis() {
+    local entry cmd url shell tmp
+    for entry in "${AGENT_INSTALLERS[@]}"; do
+        IFS='|' read -r cmd url shell <<<"$entry"
+        if command -v "$cmd" >/dev/null || [[ -x $HOME/.local/bin/$cmd ]]; then
+            log "$cmd already installed (updates itself)"; continue
+        fi
+        log "Installing $cmd (native installer: $url)"
+        if [[ $DRY_RUN == 1 ]]; then echo "  [dry] curl -fsSL $url | $shell"; continue; fi
+        tmp="$(mktemp)"
+        if curl -fsSL "$url" -o "$tmp"; then
+            CODEX_NON_INTERACTIVE=1 "$shell" "$tmp" </dev/null || warn "$cmd installer failed"
+        else
+            warn "couldn't download $url"
+        fi
+        rm -f "$tmp"
+    done
+    local rtk="$HOME/.local/bin/rtk" flag
+    command -v rtk >/dev/null && rtk="$(command -v rtk)"
+    if [[ -x $rtk || $DRY_RUN == 1 ]]; then
+        for flag in "${RTK_INIT[@]}"; do
+            log "rtk init -g ${flag:-(Claude Code)}"
+            # shellcheck disable=SC2086  # empty flag = no argument
+            run "$rtk" init -g $flag </dev/null || warn "rtk init -g $flag failed"
+        done
+    fi
+}
+cmd_ai() {
+    install_agent_clis
+    local nvm_dir="${XDG_CONFIG_HOME:-$HOME/.config}/nvm"
+    [[ -s $nvm_dir/nvm.sh ]] || { warn "nvm/node missing — run ./install.sh dev first, then ./install.sh ai for skills"; return; }
+    # group "owner/repo@skill" lines by repo → one `skills add` per repo
+    local -A by_repo=()
+    local line repo
+    while IFS= read -r line; do
+        repo="${line%@*}"
+        by_repo[$repo]+=" -s ${line##*@}"
+    done < <(read_list "$REPO/packages/skills.txt")
+    local agents=(); local a; for a in "${SKILL_AGENTS[@]}"; do agents+=(-a "$a"); done
+    for repo in "${!by_repo[@]}"; do
+        log "skills: $repo →${by_repo[$repo]//-s /}"
+        # shellcheck disable=SC2086  # word-split the -s flags
+        if [[ $DRY_RUN == 1 ]]; then
+            echo "  [dry] npx -y skills add $repo -g ${agents[*]}${by_repo[$repo]} -y"
+        else
+            NVM_DIR="$nvm_dir" DISABLE_TELEMETRY=1 bash -c '. "$NVM_DIR/nvm.sh" >/dev/null && npx -y skills add "$@"' \
+                _ "$repo" -g "${agents[@]}" ${by_repo[$repo]} -y </dev/null \
+                || warn "skills: $repo failed"
+        fi
+    done
+}
+
 cmd_diff() {
     local tracked
     tracked="$(cat "$REPO"/packages/{pacman,aur,hardware}.txt | sed -e 's/#.*//' -e 's/[[:space:]]*$//' -e '/^$/d' | sort -u)"
@@ -630,7 +697,7 @@ cmd_diff() {
 main() {
     local cmd="${1:-all}"; shift || true
     case "$cmd" in
-        all)      cmd_packages "$@"; cmd_link; cmd_dirs; cmd_system; cmd_services; cmd_snapshots; cmd_shell; cmd_dev; cmd_defaults; cmd_ide; cmd_theme ;;
+        all)      cmd_packages "$@"; cmd_link; cmd_dirs; cmd_system; cmd_services; cmd_snapshots; cmd_shell; cmd_dev; cmd_ai; cmd_defaults; cmd_ide; cmd_theme ;;
         packages) cmd_packages "$@" ;;
         link)     cmd_link ;;
         unlink)   cmd_unlink ;;
@@ -638,6 +705,7 @@ main() {
         snapshots) cmd_snapshots ;;
         shell)    cmd_shell ;;
         dev)      cmd_dev ;;
+        ai)       cmd_ai ;;
         defaults) cmd_defaults ;;
         ide)      cmd_ide ;;
         dirs)     cmd_dirs ;;

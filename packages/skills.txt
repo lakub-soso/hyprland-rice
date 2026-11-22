@@ -1,0 +1,32 @@
+# Agent skills from skills.sh, one owner/repo@skill per line.
+# Installed globally (~/.agents/skills, linked into Claude Code + Codex) by
+#   ./install.sh ai        (uses `npx skills add`, needs node from ./install.sh dev)
+# Find more: npx skills find <query>   ·   update: npx skills update -g -y
+
+# obra/superpowers — workflow skills
+obra/superpowers@brainstorming
+obra/superpowers@dispatching-parallel-agents
+obra/superpowers@executing-plans
+obra/superpowers@finishing-a-development-branch
+obra/superpowers@receiving-code-review
+obra/superpowers@requesting-code-review
+obra/superpowers@subagent-driven-development
+obra/superpowers@systematic-debugging
+obra/superpowers@test-driven-development
+obra/superpowers@using-git-worktrees
+obra/superpowers@using-superpowers
+obra/superpowers@verification-before-completion
+obra/superpowers@writing-plans
+obra/superpowers@writing-skills
+
+# web / frameworks
+angular/angular@angular-developer
+googlechrome/modern-web-guidance@modern-web-guidance
+googlechrome/modern-web-guidance@chrome-extensions
+aj-geddes/useful-ai-prompts@css-architecture
+kadajett/agent-nestjs-skills@nestjs-best-practices
+fallow-rs/fallow-skills@fallow
+
+# meta / style
+vercel-labs/skills@find-skills
+juliusbrussee/caveman@caveman

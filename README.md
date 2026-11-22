@@ -34,6 +34,7 @@ packages/
   aur.txt        AUR packages (installed via yay), same layout
   flatpak.txt    Flathub app IDs (Bazaar store, Dev Toolbox), installed system-wide
   hardware.txt   machine-specific (CPU ucode, GPU driver, fs tools) — opt-in
+  skills.txt     agent skills from skills.sh for Claude Code + Codex (`./install.sh ai`)
 install.sh       bootstrap / maintenance script
 ```
 
