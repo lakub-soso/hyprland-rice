@@ -1,0 +1,34 @@
+/* rofi — launcher (SUPER + Space, scripts/launcher.sh), clipboard (SUPER + V),
+   cheatsheet (SUPER + /). The launcher's modes are set in launcher.sh:
+     Apps (scripts/apps.py) · Calc (rofi-calc) · Files (scripts/files.sh) ·
+     Windows — its layout (header with avatar + power button) is
+     themes/launcher.rasi. Tab / Shift+Tab or Alt+1..4 switch tabs. */
+configuration {
+    show-icons:          true;
+    icon-theme:          "Papirus-Dark";
+    terminal:            "kitty";
+    drun-display-format: "{name}";
+    matching:            "fuzzy";
+    sort:                true;
+    sorting-method:      "fzf";
+
+    display-apps:   "Apps";
+    display-calc:   "Calc";
+    display-files:  "Files";
+    display-window: "Windows";
+
+    /* Tab cycles modes (Raycast/KRunner-ish) instead of list rows */
+    kb-mode-next:     "Tab";
+    kb-mode-previous: "ISO_Left_Tab";
+    kb-element-next:  "";
+    kb-element-prev:  "";
+
+    /* rofi has no text selection, so "select all" can't exist; Ctrl+A clears
+       the query instead (type to replace it, like select-all + typing).
+       Its default (jump to start of line) is dropped: a key can only have one
+       action. Ctrl+W still clears too. */
+    kb-clear-line:    "Control+a,Control+w";
+    kb-move-front:    "";
+}
+
+@theme "macchiato"

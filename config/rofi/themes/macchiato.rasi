@@ -1,0 +1,85 @@
+/* Catppuccin Macchiato for rofi, mauve accent.
+   Same palette as theme/macchiato.css (rofi can't read GTK CSS). */
+* {
+    base:     #24273a;
+    mantle:   #1e2030;
+    crust:    #181926;
+    surface0: #363a4f;
+    surface1: #494d64;
+    overlay0: #6e738d;
+    subtext0: #a5adcb;
+    text:     #cad3f5;
+    mauve:    #c6a0f6;
+    blue:     #8aadf4;
+
+    /* translucent variants, blurred by Hyprland (rules.lua) */
+    base-alpha:     #24273acc;
+    surface0-alpha: #363a4fb3;
+
+    background-color: transparent;
+    text-color:       @text;
+    font:             "Noto Sans 12";
+}
+
+window {
+    location:         center;
+    anchor:           center;
+    width:            640px;
+    padding:          12px;
+    border:           2px;
+    border-color:     @mauve;
+    border-radius:    10px;          /* = decoration.rounding */
+    background-color: @base-alpha;
+}
+
+mainbox {
+    spacing:  10px;
+    children: [ inputbar, mode-switcher, message, listview ];
+}
+
+inputbar {
+    padding:          8px 12px;
+    spacing:          10px;
+    border-radius:    8px;
+    background-color: @surface0-alpha;
+    children:         [ prompt, entry ];
+}
+prompt { text-color: @mauve; }
+entry  { placeholder: "Search…"; placeholder-color: @overlay0; cursor: text; }
+
+mode-switcher { spacing: 6px; }
+button {
+    padding:          4px 10px;
+    border-radius:    6px;
+    background-color: @mantle;
+    text-color:       @subtext0;
+    cursor:           pointer;
+}
+button selected { background-color: @mauve; text-color: @crust; }
+
+message { padding: 6px 10px; border-radius: 8px; background-color: @mantle; }
+textbox { text-color: @text; }
+
+listview {
+    lines:        8;
+    columns:      1;
+    spacing:      2px;
+    fixed-height: false;
+    scrollbar:    false;
+}
+
+element {
+    padding:       6px 10px;
+    spacing:       10px;
+    border-radius: 8px;
+    cursor:        pointer;
+}
+element normal.normal, element alternate.normal { background-color: transparent; }
+element selected.normal {
+    background-color: @surface0;
+    text-color:       @mauve;
+    border:           0 0 0 3px;
+    border-color:     @blue;
+}
+element-icon { size: 24px; background-color: inherit; }
+element-text { vertical-align: 0.5; text-color: inherit; background-color: inherit; }

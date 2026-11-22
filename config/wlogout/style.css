@@ -1,0 +1,44 @@
+/* wlogout power menu (scripts/power.sh) — Catppuccin Macchiato, mauve accent.
+   GTK3 CSS. Blurred by Hyprland: layer rule "logout_dialog" in rules.lua.
+   Keys: L lock · S suspend · E log out · R restart · P shut down · Esc close */
+* {
+    background-image: none;
+    box-shadow: none;
+    font-family: "Noto Sans", sans-serif;
+}
+
+window {
+    background-color: rgba(24, 25, 38, 0.55);   /* crust, see-through + blur */
+}
+
+button {
+    color: #cad3f5;                               /* text */
+    font-size: 15px;
+    background-color: rgba(54, 58, 79, 0.65);     /* surface0 */
+    border: 2px solid transparent;
+    border-radius: 16px;
+    background-repeat: no-repeat;
+    background-position: center 38%;
+    background-size: 64px;
+    padding-top: 110px;                           /* label below the icon */
+    outline-style: none;
+}
+
+button:focus,
+button:hover {
+    background-color: rgba(198, 160, 246, 0.22);  /* mauve tint */
+    border-color: #c6a0f6;
+    color: #c6a0f6;
+}
+
+#shutdown:focus, #shutdown:hover {
+    background-color: rgba(237, 135, 150, 0.22);  /* red tint for shut down */
+    border-color: #ed8796;
+    color: #ed8796;
+}
+
+#lock     { background-image: url("/usr/share/icons/Papirus/64x64/apps/system-lock-screen.svg"); }
+#suspend  { background-image: url("/usr/share/icons/Papirus/64x64/apps/system-suspend.svg"); }
+#logout   { background-image: url("/usr/share/icons/Papirus/64x64/apps/system-log-out.svg"); }
+#reboot   { background-image: url("/usr/share/icons/Papirus/64x64/apps/system-reboot.svg"); }
+#shutdown { background-image: url("/usr/share/icons/Papirus/64x64/apps/system-shutdown.svg"); }

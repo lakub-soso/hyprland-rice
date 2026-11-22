@@ -1,5 +1,7 @@
-# Official-repo packages that make up the rice (one per line, # for comments).
-# Installed with: pacman -S --needed
+# Official-repo packages (one per line, # for comments).
+# Installed with: pacman -S --needed  (./install.sh packages)
+
+# ============================== RICE ==============================
 
 # --- Compositor & session ---
 hyprland
@@ -20,19 +22,18 @@ papirus-icon-theme # icon theme (Papirus-Dark); Catppuccin folders come from aur
 breeze-icons       # fallback icons for KDE apps
 breeze             # Breeze Qt widget style — KDE apps (Dolphin sidebar) assume it
 
-# --- Bar, launcher, notifications ---
+# --- Bar, launcher, notifications, lock ---
 waybar
-wofi
+rofi               # launcher (SUPER + Space), clipboard picker, cheatsheet — config/rofi
+rofi-calc          # Calc mode in the launcher (libqalculate: units, currency, maths)
+fd                 # Files mode in the launcher (scripts/files.sh)
+cliphist           # clipboard history (SUPER + V), recorded by wl-paste in autostart.lua
+rofi-emoji         # emoji picker (SUPER + .)
+wtype              # lets rofi-emoji type the emoji into the focused window
 dunst
-
-# --- Apps ---
-kitty
-dolphin
-firefox
-neovim
-htop
-telegram-desktop
-bitwarden
+hyprlock           # lock screen (SUPER + L), config/hypr/hyprlock.conf
+mugshot            # change display name / email / picture (launcher avatar)
+python             # launcher app list (config/rofi/scripts/apps.py)
 
 # --- Screenshots / clipboard ---
 grim
@@ -40,8 +41,6 @@ slurp
 wl-clipboard
 hyprpicker         # freezes the screen while snipping (scripts/snip.sh)
 satty              # screenshot annotation editor (click the snip notification)
-hyprlock           # lock screen (SUPER + L), config/hypr/hyprlock.conf
-fastfetch
 
 # --- Audio ---
 pipewire
@@ -58,8 +57,9 @@ networkmanager
 network-manager-applet
 bluez
 bluez-utils
+blueman            # Bluetooth tray applet + device manager (autostarts via /etc/xdg/autostart)
 
-# --- Secrets ---
+# --- Secrets (keyring for Electron apps: config/code-flags.conf, electron-flags.conf) ---
 gnome-keyring
 seahorse
 
@@ -69,9 +69,130 @@ noto-fonts-cjk
 noto-fonts-emoji
 ttf-dejavu
 ttf-liberation
+# also: noto-fonts-emoji / noto-fonts-cjk above cover emoji + Chinese/Japanese/Korean;
+# Microsoft core fonts (Arial, Times New Roman, Verdana…) are ttf-ms-fonts in aur.txt
 
-# --- Used by keybinds in hyprland.lua (not installed yet) ---
+# --- Media / brightness keys (keybinds.lua) ---
 brightnessctl
 playerctl
 
+# ============================== APPS ==============================
+# Mirrors my Windows Start-menu folders. Windows-only apps → Linux
+# equivalents noted inline; no-Linux-version apps listed at the bottom.
+
+# --- Core desktop apps ---
+kitty              # terminal (also: Windows Terminal, Git Bash → git)
+dolphin            # file manager
+neovim
+htop
+fastfetch
+flatpak                    # apps in packages/flatpak.txt (Bazaar store, Dev Toolbox)
+
+# --- Browsers ---
+firefox
+librewolf
+torbrowser-launcher        # Tor Browser (downloads + verifies the official build)
+
+# --- Chat ---
 telegram-desktop
+discord
+signal-desktop
+element-desktop
+
+# --- Passwords ---
+bitwarden
+
+# --- Development ---
+dbeaver
+zed
+jq                         # JSON on the CLI (DevToys-style formatting/querying)
+yq                         # YAML/XML/TOML on the CLI
+# More DevToys-style FOSS tools, if Dev Toolbox (aur.txt) isn't enough:
+textpieces    # text transformations scratchpad (extra)
+collision     # hash generate/compare (extra)
+
+# --- Network / transfer ---
+filezilla
+qbittorrent
+proton-vpn-gtk-app         # Proton VPN
+tailscale
+putty                      # (plain `ssh` in a terminal also works)
+
+# --- Productivity / office ---
+obsidian
+kate                       # Notepad
+kcalc                      # Calculator
+gnome-clocks               # Clock: world clocks, alarms, timers, stopwatch (click waybar time)
+gnome-calendar             # Calendar, syncs online accounts (click waybar date)
+gnome-weather              # Weather app; also feeds the forecast in GNOME Calendar
+gnome-online-accounts      # Google/Microsoft/Nextcloud accounts for Calendar (goa-daemon)
+gnome-control-center       # ONLY for its Online Accounts page (launcher: Online Accounts) — see data/dbus-1
+okular                     # SumatraPDF
+rclone                     # Google Drive (rclone mount / sync; GUI alternative: insync in aur.txt)
+
+# --- Creative ---
+krita
+inkscape
+blender
+gimp
+pinta                      # Paint
+
+# --- Media ---
+obs-studio
+handbrake
+mpv
+vlc
+vlc-plugins-all
+audacity
+kdenlive
+# Spotify: spotify in aur.txt
+gwenview                   # ImageGlass
+
+# --- Games ---
+# 32-bit NVIDIA driver for Steam: lib32-nvidia-utils in hardware.txt
+# ProtonUp-Qt: aur.txt · Bottles: packages/flatpak.txt
+steam                      # [multilib]
+prismlauncher              # Prism Launcher (Minecraft)
+lutris                     # GOG/Battle.net/EA/Ubisoft/emulators launcher
+
+# Wine (Arch's wine is a WoW64 build — no lib32 deps needed)
+wine
+wine-mono                  # .NET for Wine
+wine-gecko                 # Internet Explorer/MSHTML for Wine
+
+# Performance / overlay
+gamemode                   # CPU governor/priority boost: `gamemoderun %command%`
+lib32-gamemode             # [multilib]
+mangohud                   # FPS/temps overlay: `mangohud %command%`
+lib32-mangohud             # [multilib]
+goverlay                   # GUI to configure MangoHud
+gamescope                  # micro-compositor (upscaling, frame limit, HDR)
+vulkan-icd-loader
+lib32-vulkan-icd-loader    # [multilib]
+vulkan-tools               # vulkaninfo, for debugging
+
+# --- Utilities ---
+bleachbit
+7zip                       # 7-Zip (CLI)
+ark                        # 7-Zip File Manager (KDE archive GUI, integrates with Dolphin)
+filelight                  # WizTree (disk usage)
+
+# --- Hardware monitoring ---
+mission-center             # HWMonitor / Task Manager
+cpu-x                      # CPU-Z
+nvtop                      # GPU-Z (NVIDIA usage/temps)
+lm_sensors                 # temperatures for the above
+solaar                     # Logi Options+ (Logitech devices)
+
+# --- AI ---
+ollama-cuda                # Ollama, NVIDIA GPU build
+
+# --- No Linux version / not needed (kept here for the record) ---
+# DeepL               — no Linux app; use deepl.com
+# ChatGPT             — no official Linux app; use chatgpt.com
+# PowerToys / Command Palette — rofi launcher (SUPER + Space): apps, calc, files, windows
+# Snipping Tool       — SUPER + SHIFT + S (scripts/snip.sh)
+# Microsoft Store / UniGetUI / BCUninstaller — pacman / yay
+# SuperF4             — SUPER + Q closes the focused window
+# Clock               — clock is in waybar
+# Ubuntu / WSL        — already on Linux; distrobox (extra) if you need Ubuntu

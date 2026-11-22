@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Startup Apps
+GenericName=Login items and background services
+Comment=Choose which apps and services start when you log in
+Exec=sh -c 'exec "$HOME/.config/rofi/scripts/startup.py" --open'
+Icon=preferences-system-session
+Categories=Settings;
+Keywords=autostart;startup;login;boot;services;

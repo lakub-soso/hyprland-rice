@@ -1,0 +1,5 @@
+/* GTK4 / libadwaita user stylesheet (loaded with USER priority, i.e. it wins
+   over apps' own CSS). The Catppuccin theme first, then our fixes on top.
+   Theme name: GTK_THEME in install.sh — keep in sync if you change it. */
+@import url("file:///usr/share/themes/catppuccin-macchiato-mauve-standard+default/gtk-4.0/gtk-dark.css");
+@import url("overrides.css");

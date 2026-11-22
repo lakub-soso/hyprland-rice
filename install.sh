@@ -43,19 +43,80 @@ ensure_yay() {
     rm -rf "$tmp"
 }
 
+# DaVinci Resolve (AUR davinci-resolve). Blackmagic gates the download behind a
+# registration form, so the PKGBUILD can't fetch its source: the zip must sit
+# next to the PKGBUILD. We look for the exact version the AUR package expects
+# in ~/Downloads; if it's there, build it, otherwise say where to get it.
+install_davinci() {
+    pacman -Q davinci-resolve &>/dev/null && return 0
+    local ver dl zip tmp
+    ver="$(yay -Si --aur davinci-resolve 2>/dev/null | awk -F': ' '/^Version/{print $2}' | cut -d- -f1)"
+    if [[ -z $ver ]]; then
+        warn "DaVinci Resolve: couldn't query the AUR — skipping"
+        return 0
+    fi
+    dl="$(xdg-user-dir DOWNLOAD 2>/dev/null)"
+    [[ -z $dl || $dl == "$HOME" ]] && dl="$HOME/Downloads"
+    zip="$dl/DaVinci_Resolve_${ver}_Linux.zip"
+    if [[ ! -f $zip ]]; then
+        warn "DaVinci Resolve $ver: download the free 'DaVinci Resolve' (not Studio) Linux zip from"
+        warn "  https://www.blackmagicdesign.com/support/family/davinci-resolve-and-fusion"
+        warn "  save it as $zip and re-run ./install.sh packages"
+        return 0
+    fi
+    # Build on disk, NOT in /tmp: /tmp is a RAM-backed tmpfs (half of RAM) and
+    # unpacking Resolve needs ~20 GB at peak — it fills up and the extraction
+    # gets truncated ("gzip: unexpected end of file" in prepare()).
+    local build_root="${XDG_CACHE_HOME:-$HOME/.cache}/hyprland-rice"
+    run mkdir -p "$build_root"
+    local free_gb
+    free_gb=$(df -BG --output=avail "$build_root" 2>/dev/null | tail -1 | tr -dc '0-9')
+    if [[ -n $free_gb ]] && ((free_gb < 25)); then
+        warn "DaVinci Resolve: only ${free_gb} GB free in $build_root, building needs ~25 GB — skipping"
+        return 0
+    fi
+    log "Building DaVinci Resolve $ver from $zip (in $build_root)"
+    tmp="$(mktemp -d -p "$build_root" davinci-resolve.XXXXXX)"
+    run git clone https://aur.archlinux.org/davinci-resolve.git "$tmp/davinci-resolve"
+    run cp "$zip" "$tmp/davinci-resolve/"
+    # makepkg verifies the zip's sha256 against the PKGBUILD
+    (cd "$tmp/davinci-resolve" && run makepkg -si --needed) || warn "DaVinci Resolve build failed"
+    rm -rf "$tmp"
+}
+
 cmd_packages() {
-    local lists=("$REPO/packages/pacman.txt")
-    [[ ${1:-} == --hardware ]] && lists+=("$REPO/packages/hardware.txt")
+    local lists=("$REPO/packages/pacman.txt") aur_lists=("$REPO/packages/aur.txt")
+    local arg
+    for arg in "$@"; do
+        case "$arg" in
+            --hardware) lists+=("$REPO/packages/hardware.txt") ;;
+            *) warn "unknown option: $arg"; return 1 ;;
+        esac
+    done
 
     log "Installing repo packages"
     mapfile -t pkgs < <(cat "${lists[@]}" | sed -e 's/#.*//' -e 's/[[:space:]]*$//' -e '/^$/d')
     run sudo pacman -S --needed "${pkgs[@]}"
 
-    mapfile -t aur < <(read_list "$REPO/packages/aur.txt")
+    mapfile -t aur < <(cat "${aur_lists[@]}" | sed -e 's/#.*//' -e 's/[[:space:]]*$//' -e '/^$/d')
     if ((${#aur[@]})); then
         ensure_yay
         log "Installing AUR packages"
         run yay -S --needed "${aur[@]}"
+    fi
+
+    install_davinci
+
+    # Flatpaks (system-wide, from Flathub). flatpak itself comes from pacman.txt.
+    mapfile -t flatpaks < <(read_list "$REPO/packages/flatpak.txt")
+    if ((${#flatpaks[@]})); then
+        if ! command -v flatpak >/dev/null && [[ $DRY_RUN != 1 ]]; then
+            warn "flatpak not installed — skipping packages/flatpak.txt"
+            return
+        fi
+        log "Installing Flatpaks from Flathub"
+        run sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+        run sudo flatpak install --system --noninteractive flathub "${flatpaks[@]}"
     fi
 }
 
@@ -83,7 +144,7 @@ cmd_link() {
             run mkdir -p "$(dirname "$dst")"
             run ln -s "$src" "$dst"
             log "Linked $dst"
-        done < <(find "$src_root" -type f -print0)
+        done < <(find "$src_root" -type f -not -path "*/__pycache__/*" -print0)
     done
 }
 
@@ -98,7 +159,7 @@ cmd_unlink() {
                 run rm "$dst"
                 log "Unlinked $dst"
             fi
-        done < <(find "$src_root" -type f -print0)
+        done < <(find "$src_root" -type f -not -path "*/__pycache__/*" -print0)
     done
 }
 
@@ -131,6 +192,31 @@ cmd_system() {
         log "Installing $dst_wp (needs sudo)"
         run sudo install -Dm644 "$wp" "$dst_wp"
     done
+
+    ensure_locales
+}
+
+# Generate every locale named in system/etc/locale.conf (e.g. en_GB.UTF-8 for
+# LC_TIME) by uncommenting it in /etc/locale.gen and running locale-gen.
+ensure_locales() {
+    local conf="$REPO/system/etc/locale.conf" loc norm changed=0
+    [[ -f $conf ]] || return 0
+    while IFS= read -r loc; do
+        # `locale -a` lists en_GB.UTF-8 as en_GB.utf8
+        norm="$(sed 's/\.UTF-8$/.utf8/' <<<"$loc")"
+        locale -a 2>/dev/null | grep -qxF "$norm" && continue
+        if ! grep -qE "^#? *${loc//./\\.} UTF-8" /etc/locale.gen; then
+            warn "$loc not found in /etc/locale.gen — skipping"
+            continue
+        fi
+        log "Enabling locale $loc (needs sudo)"
+        run sudo sed -i -E "s/^# *(${loc//./\\.} UTF-8)/\\1/" /etc/locale.gen
+        changed=1
+    done < <(sed -nE 's/^(LANG|LC_[A-Z]+)=//p' "$conf" | sort -u)
+    if ((changed)); then
+        log "Generating locales"
+        run sudo locale-gen
+    fi
 }
 
 cmd_services() {
@@ -184,14 +270,15 @@ cmd_theme() {
     run gsettings set org.gnome.desktop.interface icon-theme   "$ICON_THEME"
     run gsettings set org.gnome.desktop.interface font-name    'Noto Sans 11'
 
-    # libadwaita apps ignore gtk-theme; they only load ~/.config/gtk-4.0/gtk.css.
-    # Link the theme's GTK4 CSS + assets there (per catppuccin/gtk's README).
-    # These point into /usr/share/themes, so they're not tracked in the repo.
+    # libadwaita apps ignore gtk-theme; they only load ~/.config/gtk-4.0/gtk.css
+    # (and gtk-dark.css). Those two are ours (config/gtk-4.0/, linked by
+    # `link`): they @import the theme's CSS + overrides.css. Here we only link
+    # the theme's assets folder, which points into /usr/share/themes.
     local gtk4_src="/usr/share/themes/$GTK_THEME/gtk-4.0" item
     if [[ -d $gtk4_src ]]; then
         log "Linking $GTK_THEME GTK4 CSS for libadwaita apps"
         run mkdir -p "$CONFIG_DST/gtk-4.0"
-        for item in assets gtk.css gtk-dark.css; do
+        for item in assets; do
             [[ -e $gtk4_src/$item ]] && run ln -sfn "$gtk4_src/$item" "$CONFIG_DST/gtk-4.0/$item"
         done
     else
@@ -228,13 +315,23 @@ cmd_theme() {
 
 cmd_diff() {
     local tracked
-    tracked="$(cat "$REPO"/packages/*.txt | sed -e 's/#.*//' -e 's/[[:space:]]*$//' -e '/^$/d' | sort -u)"
+    tracked="$(cat "$REPO"/packages/{pacman,aur,hardware}.txt | sed -e 's/#.*//' -e 's/[[:space:]]*$//' -e '/^$/d' | sort -u)"
     # Always-present base packages that don't belong in the rice lists.
     local ignore='^(base|base-devel|linux|linux-firmware|mkinitcpio|sudo|git|nano|vim|wget|iwd|polkit-kde-agent|yay|yay-debug)$'
     echo "Installed but NOT tracked (add to a list, or ignore):"
     comm -23 <(pacman -Qqe | grep -Ev "$ignore" | sort) <(echo "$tracked") | sed 's/^/  + /'
     echo "Tracked but NOT installed:"
     comm -13 <(pacman -Qq | sort) <(echo "$tracked") | sed 's/^/  - /'  # -Qq: deps count as installed
+
+    if command -v flatpak >/dev/null; then
+        local fp_tracked fp_installed
+        fp_tracked="$(read_list "$REPO/packages/flatpak.txt" | sort -u)"
+        fp_installed="$(flatpak list --app --columns=application 2>/dev/null | sort -u)"
+        echo "Flatpaks installed but NOT tracked:"
+        comm -23 <(echo "$fp_installed") <(echo "$fp_tracked") | sed '/^$/d; s/^/  + /'
+        echo "Flatpaks tracked but NOT installed:"
+        comm -13 <(echo "$fp_installed") <(echo "$fp_tracked") | sed '/^$/d; s/^/  - /'
+    fi
 }
 
 main() {

@@ -1,5 +1,6 @@
 /* Catppuccin Macchiato — https://catppuccin.com/palette
-   Shared GTK-CSS palette, @import-ed by wofi and waybar styles.
+   Shared GTK-CSS palette, @import-ed by the waybar style.
+   (rofi has its own copy: config/rofi/themes/macchiato.rasi)
    Lua copy for Hyprland: config/hypr/modules/colors.lua */
 @define-color rosewater #f4dbd6;
 @define-color flamingo  #f0c6c6;
@@ -28,6 +29,6 @@
 @define-color mantle    #1e2030;
 @define-color crust     #181926;
 
-/* Rice accent — change here to re-accent wofi + waybar */
+/* Rice accent — change here to re-accent waybar */
 @define-color accent    @mauve;
 @define-color accent2   @blue;

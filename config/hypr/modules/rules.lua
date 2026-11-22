@@ -38,6 +38,55 @@ hl.window_rule({
 -- })
 -- overlayLayerRule:set_enabled(false)
 
+--------------------------------
+---- TRANSPARENCY AND BLUR ----
+--------------------------------
+-- Blur settings: decoration.blur in modules/appearance.lua.
+
+-- Layer surfaces (launcher, notifications, bar) don't get blur by default.
+-- ignore_alpha: don't blur fully/mostly transparent pixels, i.e. the area
+-- outside their rounded corners.
+for _, ns in ipairs({ "rofi", "notifications", "waybar", "logout_dialog" }) do  -- logout_dialog = wlogout
+    hl.layer_rule({
+        name         = "blur-" .. ns,
+        match        = { namespace = "^" .. ns .. "$" },
+        blur         = true,
+        ignore_alpha = 0.3,
+    })
+end
+
+-- Kitty has its own background_opacity (text stays opaque): config/kitty.
+-- Dolphin has no transparency setting, so make the whole window translucent
+-- (active, inactive).
+hl.window_rule({
+    name    = "translucent-dolphin",
+    match   = { class = "^(org\\.kde\\.dolphin)$" },
+    opacity = "0.92 0.85",
+})
+
+-- JetBrains Toolbox places its popup next to the tray icon itself, but under
+-- XWayland it gets the coordinates wrong and lands off-screen (e.g. x=-440).
+-- It also moves itself after map, so a `move` rule alone gets overridden:
+-- re-pin it to the top-right corner (below waybar) whenever it opens or is
+-- focused from the tray.
+hl.window_rule({
+    name  = "jetbrains-toolbox-popup",
+    match = { class = "^(jetbrains-toolbox)$" },
+
+    float = true,
+    move  = "monitor_w-window_w-10 40",
+})
+
+local toolboxMove = "hl.dsp.window.move({ x = 2120, y = 40, window = 'class:^(jetbrains-toolbox)$' })"
+local function pinToolbox(w)
+    if w and w.class == "jetbrains-toolbox" then
+        -- Delayed, since Toolbox repositions itself right after these events.
+        hl.dispatch(hl.dsp.exec_cmd('sleep 0.3; hyprctl dispatch "' .. toolboxMove .. '"'))
+    end
+end
+hl.on("window.open",   pinToolbox)
+hl.on("window.active", pinToolbox)
+
 -- Hyprland-run windowrule
 hl.window_rule({
     name  = "move-hyprland-run",

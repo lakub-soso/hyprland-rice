@@ -3,7 +3,7 @@
 ------------------
 
 -- Catppuccin Macchiato — https://catppuccin.com/palette
--- GTK-CSS copy for wofi/waybar: config/theme/macchiato.css
+-- GTK-CSS copy for waybar: config/theme/macchiato.css; rofi: config/rofi/themes/macchiato.rasi
 --
 --   local c = require("modules.colors")
 --   c.rgba("mauve", "ee")  -> "rgba(c6a0f6ee)"

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Online Accounts
+GenericName=Google, Microsoft, Nextcloud… accounts
+Comment=Connect online accounts for Calendar and other apps
+# GNOME Settings' Online Accounts page; it only runs with a GNOME desktop name
+Exec=env XDG_CURRENT_DESKTOP=GNOME gnome-control-center online-accounts
+TryExec=gnome-control-center
+Icon=goa-panel
+Categories=Settings;
+Keywords=google;microsoft;nextcloud;calendar;accounts;goa;

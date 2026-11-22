@@ -1,0 +1,11 @@
+/* Fixes for apps newer than the Catppuccin GTK theme (1.0.3, archived 2024).
+   Imported by gtk.css and gtk-dark.css. Catppuccin Macchiato colours. */
+
+/* GNOME Calendar: the month-name chip on the 1st of each month ("December").
+   The app wants dark text on a light pill (var(--light-3)); the theme's label
+   colour overrides the text to light and doesn't define --light-3, so it came
+   out light-on-near-white. Make it a muted pill, distinct from today's mauve. */
+monthcell label.first-day {
+    color: #cad3f5;              /* text */
+    background-color: #5b6078;   /* surface2 */
+}

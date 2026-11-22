@@ -1,3 +1,4 @@
 *.bak
 *.local.lua
 config/hypr/local.lua
+__pycache__/

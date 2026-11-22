@@ -1,0 +1,72 @@
+/* Launcher layout (SUPER + Space, scripts/launcher.sh): macchiato.rasi plus
+     header:  [avatar] [name]                                  [power]
+     search
+     tabs:    Apps · Calc · Files · Windows (active tab = mauve pill)
+     list     (Apps: categorised, Recent on top — scripts/apps.py)
+   Avatar/name come from AccountsService via -theme-str in launcher.sh.
+   Clicking them fires kb-custom-13 (→ mugshot), power fires kb-custom-17
+   (→ wlogout); apps.py/files.sh receive those as hot keys. From Calc/Windows
+   (rofi built-ins) the keys just switch to Apps — click again there.
+   NOTE: one quoted string per line — rofi's parser breaks on two. */
+@import "macchiato"
+
+mainbox {
+    children: [ header, inputbar, mode-switcher, message, listview ];
+}
+
+/* --- header: avatar + name, power button --- */
+header {
+    orientation: horizontal;
+    expand:      false;
+    spacing:     10px;
+    padding:     0 2px;
+    children:    [ icon-avatar, button-user, spacer, icon-power ];
+}
+spacer { expand: true; }
+
+icon-avatar {
+    expand:         false;
+    size:           32px;
+    border-radius:  16px;
+    vertical-align: 0.5;
+    cursor:         pointer;
+    action:         "kb-custom-13";
+}
+button-user {
+    expand:         false;
+    vertical-align: 0.5;
+    text-color:     @text;
+    font:           "Noto Sans Bold 12";
+    cursor:         pointer;
+    action:         "kb-custom-13";
+}
+icon-power {
+    expand:           false;
+    size:             22px;
+    padding:          6px;
+    border-radius:    8px;
+    background-color: @mantle;
+    vertical-align:   0.5;
+    cursor:           pointer;
+    filename:         "system-shutdown";
+    action:           "kb-custom-17";
+}
+
+/* search field without the prompt — the highlighted tab shows the mode */
+inputbar { children: [ entry ]; }
+
+/* --- tabs: inactive = plain text, active = mauve pill --- */
+mode-switcher { expand: false; spacing: 6px; }
+button {
+    padding:          4px 12px;
+    expand:           false;
+    background-color: transparent;
+    text-color:       @subtext0;
+}
+button selected {
+    background-color: @mauve;
+    text-color:       @crust;
+}
+
+/* room for the category headers */
+listview { lines: 10; }

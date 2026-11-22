@@ -1,0 +1,7 @@
+# Per-user override of /usr/share/dbus-1/services/org.gnome.Settings.service.
+# GNOME Settings refuses to run unless XDG_CURRENT_DESKTOP contains GNOME, so
+# apps that open it over D-Bus (GNOME Calendar → "Online Accounts") got
+# nothing. Linked to ~/.local/share/dbus-1/services/, which takes precedence.
+[D-BUS Service]
+Name=org.gnome.Settings
+Exec=/usr/bin/env XDG_CURRENT_DESKTOP=GNOME /usr/bin/gnome-control-center --gapplication-service

@@ -1,0 +1,10 @@
+# Flatpak apps (Flathub app IDs), installed system-wide by ./install.sh packages.
+# Only apps whose Flathub build is verified (published by the developer).
+# Browse/update with Bazaar, or `flatpak update`.
+
+io.github.kolunmi.Bazaar   # Bazaar — Flatpak app store (verified: kolunmi)
+com.github.tchx84.Flatseal # Flatseal — review/change Flatpak permissions (verified: tchx84)
+me.iepure.devtoolbox       # Dev Toolbox — DevToys alternative (verified: iepure.me)
+
+# --- Gaming ---
+com.usebottles.bottles     # Bottles — Wine prefixes for Windows apps; upstream only supports the Flatpak (verified)

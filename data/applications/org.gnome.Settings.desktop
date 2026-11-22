@@ -1,0 +1,8 @@
+[Desktop Entry]
+# Hides GNOME Settings from the launcher: outside GNOME most of its pages
+# (display, sound, power…) don't work. Only its Online Accounts page is used,
+# via online-accounts.desktop. Overrides /usr/share/applications/ by name.
+Type=Application
+Name=Settings
+Exec=env XDG_CURRENT_DESKTOP=GNOME gnome-control-center
+NoDisplay=true

@@ -3,7 +3,10 @@
 # Copy/edit this file per machine.
 amd-ucode
 nvidia-open
+lib32-nvidia-utils   # 32-bit NVIDIA userspace — Steam and 32-bit games need it ([multilib])
 libva-nvidia-driver
+opencl-nvidia        # NVIDIA OpenCL — DaVinci Resolve needs an opencl-driver; without this pacman may pick mesa's
+cuda                 # CUDA toolkit (5.4 GB): nvcc + libs; ollama-cuda needs it anyway. cudnn only if building ML frameworks
 linux-headers
 btrfs-progs
 efibootmgr

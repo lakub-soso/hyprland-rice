@@ -1,0 +1,51 @@
+/* Keybind cheatsheet (SUPER + /, scripts/cheatsheet.py): fullscreen overlay.
+   cheatsheet.py sets listview lines/columns per monitor via -theme-str and
+   pads columns so whole sections stay together; flow: vertical fills each
+   column top-to-bottom. Blurred by Hyprland (layer rule "rofi").
+   NOTE: one quoted string per line — rofi's parser breaks on two. */
+@import "macchiato"
+
+* {
+    font: "DejaVu Sans Mono 11";      /* monospace: keeps the columns aligned */
+}
+
+window {
+    location:         center;
+    anchor:           center;
+    width:            100%;
+    height:           100%;
+    padding:          56px 72px;
+    border:           0;
+    border-radius:    0;
+    background-color: rgba(24, 25, 38, 0.80);   /* crust, see-through */
+}
+
+mainbox {
+    spacing:  28px;
+    children: [ inputbar, listview ];
+}
+
+inputbar {
+    children: [ prompt, entry ];
+}
+
+listview {
+    flow:          vertical;
+    expand:        false;           /* honour the script's `lines`, don't fill the height */
+    fixed-columns: true;
+    fixed-height:  true;
+    scrollbar:     false;
+    spacing:       3px;
+}
+
+element {
+    padding:       3px 10px;
+    margin:        0 24px 0 0;      /* gap between columns */
+    border-radius: 6px;
+}
+/* selection is incidental here (it's a reference sheet): keep it subtle */
+element selected.normal {
+    background-color: rgba(54, 58, 79, 0.55);
+    border:           0;
+    text-color:       @text;
+}

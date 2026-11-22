@@ -13,7 +13,7 @@
 
     "modules-left": ["hyprland/workspaces", "hyprland/submap"],
     "modules-center": ["hyprland/window"],
-    "modules-right": ["pulseaudio", "network", "cpu", "memory", "tray", "clock"],
+    "modules-right": ["hyprland/language", "pulseaudio", "network", "bluetooth", "cpu", "memory", "tray", "clock#date", "clock#time"],
 
     "hyprland/workspaces": {
         // Show workspaces from every monitor, since this is the only bar
@@ -24,9 +24,49 @@
         "separate-outputs": false
     },
     "tray": { "spacing": 10 },
-    "clock": {
-        "format": "{:%a %d %b  %H:%M}",
-        "tooltip-format": "<tt>{calendar}</tt>"
+    // Date and time are separate modules so each can open its own app.
+    // First day of week / date names follow LC_TIME (en_GB → Monday first).
+    "clock#date": {
+        "format": "{:%a %d %b}",
+        "tooltip-format": "<tt>{calendar}</tt>",
+        "calendar": {
+            "mode": "month",
+            "on-scroll": 1,
+            "format": {
+                "months":   "<span color='#c6a0f6'><b>{}</b></span>",
+                "weekdays": "<span color='#8aadf4'><b>{}</b></span>",
+                "today":    "<span color='#ed8796'><b><u>{}</u></b></span>"
+            }
+        },
+        // scroll over the date to page through months in the tooltip
+        "actions": { "on-scroll-up": "shift_up", "on-scroll-down": "shift_down" },
+        "on-click": "gnome-calendar"
+    },
+    "clock#time": {
+        "format": "{:%H:%M}",
+        "tooltip-format": "Clocks, alarms &amp; timers",
+        "on-click": "gnome-clocks"
+    },
+    // Keyboard layout (input.lua: us,ua,ru; Alt+Shift cycles). Click to switch.
+    "hyprland/language": {
+        // format-<language code> supplies the "{}" in "format"
+        "format": "{}",
+        "format-en": "EN",
+        "format-uk": "UA",
+        "format-ru": "RU",
+        "on-click": "hyprctl switchxkblayout all next"
+    },
+    // Bluetooth (bluez). Click: blueman-manager (pair / connect devices).
+    "bluetooth": {
+        "format": "BT",
+        "format-off": "BT off",
+        "format-disabled": "BT off",
+        "format-connected": "BT {device_alias}",
+        "format-connected-battery": "BT {device_alias} {device_battery_percentage}%",
+        "tooltip-format": "{controller_alias}: {num_connections} connected",
+        "tooltip-format-connected": "{device_enumerate}",
+        "tooltip-format-enumerate-connected": "{device_alias}",
+        "on-click": "blueman-manager"
     },
     "cpu": { "format": "CPU {usage}%" },
     "memory": { "format": "RAM {}%" },

@@ -1,6 +1,61 @@
 # AUR packages, installed with yay (bootstrapped automatically if missing).
-visual-studio-code-bin
-claude-desktop
+# Votes/maintainers checked 2026-11-22. yay shows the PKGBUILD diff on updates —
+# read it: these are third-party builds unless noted.
+
+# ============================== RICE ==============================
+
+# --- Theming (Catppuccin Macchiato) ---
 papirus-folders-catppuccin-git   # Catppuccin folder colours for Papirus (by Catppuccin)
 catppuccin-gtk-theme-macchiato   # Catppuccin GTK theme (official release zips, sha256-pinned)
-catppuccin-sddm-theme-macchiato  # SDDM login theme (official release zips, sha256-pinned)
+catppuccin-sddm-theme-macchiato  # SDDM login theme (by Catppuccin, sha256-pinned)
+
+# --- Fonts ---
+ttf-ms-fonts                     # Microsoft core fonts (Arial, Times New Roman, Verdana, Courier New…); official corefonts installers, sha256-pinned
+
+# ============================== APPS ==============================
+
+# --- Chat ---
+#viber
+chatterino2-bin                  # maintained by Chatterino's own dev (pajlada)
+
+# --- Proton / passwords / 2FA ---
+proton-mail-bin
+proton-pass-bin
+proton-authenticator-bin
+ente-auth-bin
+
+# --- VPN ---
+mullvad-vpn-bin                  # enables mullvad-daemon on install
+
+# --- Development ---
+visual-studio-code-bin
+docker-desktop                   # Docker's official Arch package, sha256-pinned; conflicts with docker-compose/docker-buildx (bundles them)
+bruno-bin
+jetbrains-toolbox                # installs CLion, WebStorm, … from inside the app
+
+# --- Office ---
+onlyoffice-bin
+
+# --- Creative ---
+# davinci-resolve — NOT installed via yay: Blackmagic requires registration to
+#   download, so the AUR package needs the zip next to its PKGBUILD. Put
+#   DaVinci_Resolve_<ver>_Linux.zip in ~/Downloads and ./install.sh packages
+#   builds it (install_davinci in install.sh).
+
+# --- Media ---
+spotify                          # repackages Spotify's official .deb (repository.spotify.com), signature-verified
+
+# --- Games ---
+heroic-games-launcher-bin        # Epic Games + GOG Galaxy
+protonup-qt                      # Proton-GE/Wine-GE for Steam, Lutris, Heroic (built from upstream source tag)
+
+# --- System ---
+octopi                           # pacman + AUR GUI (Pamac-style); set yay as the AUR helper in its settings
+wlogout                          # power menu overlay (launcher power button, SUPER + Escape); by its author
+
+# --- Utilities ---
+localsend-bin
+# insync                         # optional: Google Drive GUI sync (paid); rclone (pacman.txt) is the free route
+
+# --- AI ---
+claude-desktop

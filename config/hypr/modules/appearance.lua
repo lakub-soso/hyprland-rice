@@ -41,10 +41,13 @@ hl.config({
             color        = c.rgba("crust", "ee"),
         },
 
+        -- Blur shows through anything translucent: kitty, dolphin, rofi, dunst,
+        -- waybar (see modules/rules.lua for the layer/window rules).
         blur = {
             enabled   = true,
-            size      = 3,
-            passes    = 1,
+            size      = 8,
+            passes    = 3,      -- smoother "frosted glass" than the default 1
+            noise     = 0.02,   -- a little grain, avoids banding on dark colours
             vibrancy  = 0.1696,
         },
     },

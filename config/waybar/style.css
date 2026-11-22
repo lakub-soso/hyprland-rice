@@ -10,7 +10,7 @@
 }
 
 window#waybar {
-    background-color: alpha(@crust, 0.9);
+    background-color: alpha(@crust, 0.7);   /* blurred by Hyprland (rules.lua) */
     color: @text;
 }
 
@@ -63,17 +63,21 @@ tooltip label { color: @text; }
 window#waybar.empty #window { background: transparent; }
 
 /* --- right: status modules, each a pill --- */
-#pulseaudio, #network, #cpu, #memory, #tray, #clock {
+#language, #pulseaudio, #network, #bluetooth, #cpu, #memory, #tray, #clock {
     margin: 4px 3px;
     padding: 0 10px;
     border-radius: 8px;
     background-color: @surface0;
 }
-#clock      { color: @accent; margin-right: 6px; font-weight: bold; }
+#clock.date { color: @blue; }
+#clock.time { color: @accent; margin-right: 6px; font-weight: bold; }
+#language   { color: @mauve; font-weight: bold; }
 #pulseaudio { color: @blue; }
 #pulseaudio.muted { color: @overlay0; }
 #network    { color: @teal; }
 #network.disconnected { color: @red; }
+#bluetooth  { color: @sapphire; }
+#bluetooth.off, #bluetooth.disabled { color: @overlay0; }
 #cpu        { color: @green; }
 #memory     { color: @yellow; }
 

@@ -15,9 +15,15 @@ cs.section("General")
 cs.bind(mod("slash"), hl.dsp.exec_cmd(cs.command), "Toggle this cheatsheet")
 cs.bind(mod("L"),     hl.dsp.exec_cmd("pidof hyprlock || hyprlock"), "Lock screen") -- config/hypr/hyprlock.conf
 cs.bind(mod("M"), hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"), "Exit Hyprland")
+cs.bind(mod("Escape"), hl.dsp.exec_cmd(programs.power), "Power menu")
+-- keyboard layout switching is XKB (input.lua), not a Hyprland bind: list it only
+cs.note("ALT + SHIFT", "Switch layout: EN · UA · RU")
 
 cs.section("Apps")
-cs.bind(mod("space"), hl.dsp.exec_cmd(programs.menu),        "App launcher")
+cs.bind(mod("space"), hl.dsp.exec_cmd(programs.menu),        "Launcher: apps · calc · files · windows")
+cs.bind(mod("V"),     hl.dsp.exec_cmd(programs.clipboard),   "Clipboard history")
+-- rofi-emoji: Enter types the emoji into the focused window (wtype) + copies it
+cs.bind(mod("period"), hl.dsp.exec_cmd("pkill -x rofi || rofi -modi emoji -show emoji"), "Emoji picker")
 cs.bind(mod("T"),     hl.dsp.exec_cmd(programs.terminal),    "Terminal")
 cs.bind(mod("E"),     hl.dsp.exec_cmd(programs.fileManager), "File manager")
 
@@ -26,9 +32,11 @@ cs.section("Screenshots")
 cs.bind(mod("SHIFT + S"), hl.dsp.exec_cmd("~/.config/hypr/scripts/snip.sh"), "Snip region / click a window")
 
 cs.section("Windows")
+-- close = polite close request (app can save); kill = SIGKILL, like SuperF4
 local closeWindowBind = cs.bind(mod("Q"), hl.dsp.window.close(), "Close window")
 -- closeWindowBind:set_enabled(false)
-cs.bind(mod("V"), hl.dsp.window.float({ action = "toggle" }), "Toggle floating")
+cs.bind(mod("SHIFT + Q"), hl.dsp.window.kill(), "Force-kill window (SIGKILL)")
+cs.bind(mod("F"), hl.dsp.window.float({ action = "toggle" }), "Toggle floating")
 cs.bind(mod("P"), hl.dsp.window.pseudo(),                     "Pseudo-tile")
 cs.bind(mod("J"), hl.dsp.layout("togglesplit"),               "Toggle split direction") -- dwindle only
 
