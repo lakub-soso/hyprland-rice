@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- VTube Studio: face tracking sent from the iPhone/Android app to the PC
+     app's server — default port 25565, "TCP/UDP" per the docs (both opened).
+     If you change the port in VTube Studio's settings, change it here too.
+     Not opened on purpose: the plugin API (ws://localhost:8001) is local-only.
+     https://github.com/DenchiSoft/VTubeStudio/wiki/Streaming-to-Mac-PC -->
+<service>
+  <short>VTube Studio</short>
+  <description>VTube Studio phone-to-PC face tracking server (default port 25565).</description>
+  <port protocol="tcp" port="25565"/>
+  <port protocol="udp" port="25565"/>
+</service>

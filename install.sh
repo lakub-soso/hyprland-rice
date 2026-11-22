@@ -197,6 +197,32 @@ cmd_system() {
     done
 
     ensure_locales
+    ensure_firewall_services
+}
+
+# Enable every firewalld service the repo ships (system/etc/firewalld/services/
+# *.xml, e.g. LocalSend, VTube Studio) in the default zone, permanently.
+# Reload first so firewalld sees newly copied definitions. Skipped if
+# firewalld isn't running.
+ensure_firewall_services() {
+    local dir="$REPO/system/etc/firewalld/services" f svc zone changed=0
+    compgen -G "$dir/*.xml" >/dev/null || return 0
+    if ! firewall-cmd --state >/dev/null 2>&1; then
+        warn "firewalld not running — skipping firewall services"
+        return 0
+    fi
+    run sudo firewall-cmd --reload >/dev/null
+    zone="$(firewall-cmd --get-default-zone)"
+    for f in "$dir"/*.xml; do
+        svc="$(basename "$f" .xml)"
+        if sudo firewall-cmd --permanent --zone="$zone" --query-service="$svc" >/dev/null 2>&1; then
+            continue
+        fi
+        log "Firewall: allowing $svc in zone $zone (needs sudo)"
+        run sudo firewall-cmd --permanent --zone="$zone" --add-service="$svc" >/dev/null
+        changed=1
+    done
+    if ((changed)); then run sudo firewall-cmd --reload >/dev/null; fi
 }
 
 # Generate every locale named in system/etc/locale.conf (e.g. en_GB.UTF-8 for
