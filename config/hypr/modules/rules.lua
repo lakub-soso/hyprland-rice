@@ -87,29 +87,38 @@ end
 hl.on("window.open",   pinToolbox)
 hl.on("window.active", pinToolbox)
 
--- Steam games (Proton and Steam-launched: class steam_app_<appid>) open
--- fullscreen. Many of them do "borderless fullscreen" by sizing themselves to
--- the screen or sending a maximize request (suppressed above), never a real
--- fullscreen request, so in a tiling WM they'd end up as a tile.
--- Only tiled windows: launchers, splash screens and dialogs float, and
--- they're left alone. idle_inhibit: no screen lock/sleep mid-game.
-hl.window_rule({
-    name  = "steam-games-fullscreen",
-    match = { class = "^(steam_app_\\d+)$", float = false },
+-- Steam games (Proton and Steam-launched: class steam_app_<appid>) go
+-- fullscreen whenever they're focused: on open, and when you come back to
+-- them (Alt+Tab to Steam or opening an app un-fullscreens them).
+-- Many games do "borderless fullscreen" by sizing themselves to the screen or
+-- sending a maximize request (suppressed above), never a real fullscreen
+-- request, so in a tiling WM they'd end up as a tile, or floating: Proton
+-- games with a fixed size (min = max) float, e.g. Cyberpunk at 1024x1280.
+-- So: tiled windows, plus floating ones covering ≥ 80% of the monitor's width
+-- or height. Smaller floating windows (launchers, splash screens, dialogs)
+-- are left alone. Super+Shift+F un-fullscreens a game while it stays focused.
+local function isBigGame(w)
+    if not tostring(w.class or ""):match("^steam_app_%d+$") then return false end
+    if not w.floating then return true end
+    local m, s = w.monitor, w.size
+    if not (m and type(s) == "table" and s.x and s.y) then return false end
+    return s.x >= 0.8 * m.width or s.y >= 0.8 * m.height
+end
 
-    fullscreen   = true,
-    idle_inhibit = "fullscreen",
-})
+-- hl.on("window.active", function(w)
+--     -- acts on the active window, i.e. w (window.open fires before focus moves)
+--     if w and (w.fullscreen or 0) == 0 and isBigGame(w) then
+--         hl.dispatch(hl.dsp.window.fullscreen())
+--     end
+-- end)
 
--- Switching away (Alt+Tab to Steam, launching an app) un-fullscreens the game;
--- going back to it makes it fullscreen again. Super+Shift+F still un-fullscreens
--- it for as long as it stays focused.
-hl.on("window.active", function(w)
-    if w and not w.floating and (w.fullscreen or 0) == 0
-        and tostring(w.class or ""):match("^steam_app_%d+$") then
-        hl.dispatch(hl.dsp.window.fullscreen())
-    end
-end)
+-- -- no screen lock/sleep while a game is fullscreen
+-- hl.window_rule({
+--     name  = "steam-games-idle-inhibit",
+--     match = { class = "^(steam_app_\\d+)$" },
+
+--     idle_inhibit = "fullscreen",
+-- })
 
 -- Hyprland-run windowrule
 hl.window_rule({
