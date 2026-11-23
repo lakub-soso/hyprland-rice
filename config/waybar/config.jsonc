@@ -121,6 +121,7 @@
         "exec": "~/.config/hypr/scripts/sysmon.py",
         "return-type": "json",
         "on-click": "missioncenter",
+        "on-click-right": "coolercontrol",   // fan curves
         "escape": false
     },
     // Appears only while an app records from a real mic.

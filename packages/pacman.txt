@@ -228,6 +228,7 @@ mission-center             # HWMonitor / Task Manager
 cpu-x                      # CPU-Z
 nvtop                      # GPU-Z (NVIDIA usage/temps)
 lm_sensors                 # temperatures for the above
+coolercontrol              # FanXpert (Armoury Crate): fan curves per sensor; GUI + coolercontrold daemon (./install.sh services)
 solaar                     # Logi Options+ (Logitech devices)
 
 # --- AI ---

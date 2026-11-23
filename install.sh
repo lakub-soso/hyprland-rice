@@ -342,6 +342,12 @@ cmd_services() {
     if systemctl list-unit-files power-profiles-daemon.service --no-legend 2>/dev/null | grep -q .; then
         run sudo systemctl enable --now power-profiles-daemon.service
     fi
+    # fan curves (CoolerControl, the FanXpert equivalent). The daemon applies
+    # the curves at boot even when the GUI is closed. Curves live in
+    # /etc/coolercontrol (machine-specific, so not tracked in the repo).
+    if systemctl list-unit-files coolercontrold.service --no-legend 2>/dev/null | grep -q .; then
+        run sudo systemctl enable --now coolercontrold.service
+    fi
     # weekly refresh of pkgfile's database — zsh's command-not-found snippet
     # uses it to suggest "pacman -S <pkg>" for unknown commands
     if systemctl list-unit-files pkgfile-update.timer --no-legend 2>/dev/null | grep -q .; then
