@@ -38,6 +38,10 @@ zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 
 # --- keybindings -------------------------------------------------------------
+# Force emacs mode: EDITOR=nvim makes zsh default to vi mode, where Esc-prefixed
+# keys (Alt+Backspace, Alt+arrows) switch to command mode instead.
+bindkey -e
+bindkey '^[^?' backward-kill-word  # Alt+Backspace
 bindkey '^p' history-search-backward
 bindkey '^n' history-search-forward
 bindkey '^[[1;3C' forward-word     # Alt+→
