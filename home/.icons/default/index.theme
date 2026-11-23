@@ -1,0 +1,5 @@
+# Default XCursor theme for apps that ignore XCURSOR_THEME (X11/XWayland,
+# Steam, Wine). Keep in sync with modules/env.lua and install.sh CURSOR_THEME.
+[Icon Theme]
+Name=Default
+Inherits=catppuccin-macchiato-mauve-cursors

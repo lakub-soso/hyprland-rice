@@ -8,6 +8,7 @@
 papirus-folders-catppuccin-git   # Catppuccin folder colours for Papirus (by Catppuccin)
 catppuccin-gtk-theme-macchiato   # Catppuccin GTK theme (official release zips, sha256-pinned)
 catppuccin-sddm-theme-macchiato  # SDDM login theme (by Catppuccin, sha256-pinned)
+catppuccin-cursors-macchiato     # Mouse cursors, all accents (by Catppuccin, sha256-pinned)
 
 # --- Fonts ---
 ttf-ms-fonts                     # Microsoft core fonts (Arial, Times New Roman, Verdana, Courier New…); official corefonts installers, sha256-pinned

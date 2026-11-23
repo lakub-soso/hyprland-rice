@@ -28,6 +28,7 @@ DATA_DST="${XDG_DATA_HOME:-$HOME/.local/share}"
 LINK_TREES=("$REPO/config:$CONFIG_DST" "$REPO/data:$DATA_DST" "$REPO/home:$HOME")
 KDE_SCHEME="CatppuccinMacchiatoMauve"
 ICON_THEME="Papirus-Dark"
+CURSOR_THEME="catppuccin-macchiato-mauve-cursors"   # from catppuccin-cursors-macchiato
 GTK_THEME="catppuccin-macchiato-mauve-standard+default"   # from catppuccin-gtk-theme-macchiato
 # Default apps: "<desktop file>:<MIME prefixes>" — every type the app's .desktop
 # file declares under those prefixes (./install.sh defaults)
@@ -207,10 +208,11 @@ cmd_unlink() {
 
 # System files: system/<path> is COPIED to /<path> (root-owned, 644). Copied
 # rather than symlinked because system daemons (e.g. sddm) can't read $HOME.
+# Files executable in the repo (e.g. scripts) are installed 755 instead.
 # Re-run after editing anything under system/. Unchanged files are skipped;
 # a differing existing file is kept as <file>.rice-bak first.
 cmd_system() {
-    local root="$REPO/system" src dst
+    local root="$REPO/system" src dst mode
     [[ -d $root ]] || return 0
     while IFS= read -r -d '' src; do
         dst="/${src#"$root"/}"
@@ -222,7 +224,8 @@ cmd_system() {
             run sudo cp -a "$dst" "$dst.rice-bak"
         fi
         log "Installing $dst (needs sudo)"
-        run sudo install -Dm644 "$src" "$dst"
+        mode=644; [[ -x $src ]] && mode=755
+        run sudo install -Dm"$mode" "$src" "$dst"
     done < <(find "$root" -type f -print0)
 
     # Wallpapers also go somewhere the sddm user can read (login background).
@@ -462,6 +465,8 @@ cmd_theme() {
     run gsettings set org.gnome.desktop.interface color-scheme 'prefer-dark'
     run gsettings set org.gnome.desktop.interface gtk-theme    "$GTK_THEME"
     run gsettings set org.gnome.desktop.interface icon-theme   "$ICON_THEME"
+    run gsettings set org.gnome.desktop.interface cursor-theme "$CURSOR_THEME"
+    run gsettings set org.gnome.desktop.interface cursor-size  24
     run gsettings set org.gnome.desktop.interface font-name    'Noto Sans 11'
 
     # libadwaita apps ignore gtk-theme; they only load ~/.config/gtk-4.0/gtk.css

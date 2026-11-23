@@ -1,0 +1,31 @@
+#!/bin/sh
+# SDDM Xsetup — runs as root on the greeter's X server before the login dialog.
+# The greeter is X11, so Hyprland's monitor rules (config/hypr/modules/monitors.lua)
+# don't apply here; mirror the layout with xrandr instead:
+#   [ Philips 1440p ][ Samsung 1080p, portrait (xrandr "left") ]
+# Monitors are matched by the model name in their EDID, not by port name, since
+# X output names differ from DRM ones (HDMI-A-3 vs HDMI-3 / HDMI-A-1-3 on PRIME).
+# Enabled by system/etc/sddm.conf.d/20-xsetup.conf.
+
+# EDID hex of the model-name strings: "27M2N5500" and "F27G3xTF".
+PHILIPS_EDID=32374d324e35353030
+SAMSUNG_EDID=4632374733785446
+
+# Print the X output whose EDID contains $1.
+output_by_edid() {
+    xrandr --prop | awk -v want="$1" '
+        /^[^ \t]/      { out = $1; inedid = 0; next }
+        /EDID:/        { inedid = 1; edid[out] = ""; next }
+        inedid && /^[ \t]+[0-9a-f]+$/ { gsub(/[ \t]/, ""); edid[out] = edid[out] $0; next }
+                       { inedid = 0 }
+        END { for (o in edid) if (index(edid[o], want)) { print o; exit } }'
+}
+
+philips=$(output_by_edid "$PHILIPS_EDID")
+samsung=$(output_by_edid "$SAMSUNG_EDID")
+
+[ -n "$philips" ] && xrandr --output "$philips" --mode 2560x1440 --rate 144 --primary --pos 0x0
+[ -n "$samsung" ] && xrandr --output "$samsung" --mode 1920x1080 --rotate left \
+    ${philips:+--right-of "$philips"}
+
+exit 0
