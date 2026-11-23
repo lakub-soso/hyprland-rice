@@ -70,7 +70,6 @@
         "tooltip-format": "Clocks, alarms &amp; timers",
         "on-click": "gnome-clocks"
     },
-    // Keyboard layout (input.lua: us,ua,ru; Alt+Shift cycles). Click to switch.
     "hyprland/language": {
         // format-<language code> supplies the "{}" in "format"
         "format": "{}",
@@ -79,9 +78,7 @@
         "format-ru": "RU",
         "on-click": "hyprctl switchxkblayout all next"
     },
-    // Now playing (any MPRIS player: Spotify, Firefox/YouTube, mpv, VLC…).
-    // Hidden when nothing plays. Click: play/pause · right/scroll: next ·
-    // middle: previous.
+    // Hidden when nothing plays.
     "mpris": {
         "format": "{player_icon}  {dynamic}",
         "format-paused": "{status_icon}  {dynamic}",
@@ -110,7 +107,6 @@
         "on-scroll-up": "playerctl next",
         "on-scroll-down": "playerctl previous"
     },
-    // Power profile (power-profiles-daemon): click cycles, right-click goes back.
     "power-profiles-daemon": {
         "format": "{icon}",
         "tooltip-format": "Power profile: {profile}\nDriver: {driver}\nclick: next · right-click: previous",
@@ -121,16 +117,13 @@
             "default": "󰾅"
         }
     },
-    // System monitor: CPU · RAM · GPU in one pill (hypr/scripts/sysmon.py).
-    // Hover: temps, load, swap, VRAM, disk… · click: Mission Center.
     "custom/sysmon": {
         "exec": "~/.config/hypr/scripts/sysmon.py",
         "return-type": "json",
         "on-click": "missioncenter",
         "escape": false
     },
-    // Microphone: appears only while an app records from a real mic; red when
-    // live, grey when muted. Click toggles mute (same as SUPER + SHIFT + M).
+    // Appears only while an app records from a real mic.
     // Event-driven (pactl subscribe) — hypr/scripts/mic.sh
     "custom/mic": {
         "exec": "~/.config/hypr/scripts/mic.sh",
@@ -138,8 +131,6 @@
         "on-click": "~/.config/hypr/scripts/mic.sh toggle",
         "escape": false
     },
-    // Volume: icon by level (low/medium/high; + headphones icon on headphones; muted). Scroll ±5 %
-    // (capped at 100 %) · click: pavucontrol · right-click: mute.
     "pulseaudio": {
         "format": "{icon}  {volume}%",
         "format-muted": "󰝟  muted",

@@ -1,9 +1,18 @@
 # Agent skills from skills.sh, one owner/repo@skill per line.
 # Installed globally (~/.agents/skills, linked into Claude Code + Codex) by
 #   ./install.sh ai        (uses `npx skills add`, needs node from ./install.sh dev)
-# Find more: npx skills find <query>   ·   update: npx skills update -g -y
+# Find more: npx skills find <query>
+#
+# Skills are instructions for agents that can run shell commands, so each repo
+# is pinned to a commit ("pin owner/repo <commit>"): installs are reproducible
+# and a later push to the repo can't change what gets installed. To update a
+# repo: review what changed (https://github.com/<owner>/<repo>/compare/<old>...<new>),
+# then replace the commit with the new one (git ls-remote https://github.com/<owner>/<repo> HEAD).
+# Unpinned repos still install (latest commit), with a warning.
+# Note: `npx skills update -g -y` ignores these pins and moves to latest.
 
 # obra/superpowers — workflow skills
+pin obra/superpowers 22f0b463e7a5e579904dd6211a520321035526f7
 obra/superpowers@brainstorming
 obra/superpowers@dispatching-parallel-agents
 obra/superpowers@executing-plans
@@ -20,13 +29,14 @@ obra/superpowers@writing-plans
 obra/superpowers@writing-skills
 
 # web / frameworks
+pin angular/angular f3ea683ddb931b4f8d73972aa2d146201fc0892b
 angular/angular@angular-developer
+pin googlechrome/modern-web-guidance 2b4aa13a72dd47cd135b06ce5abfccd92e19b24f
 googlechrome/modern-web-guidance@modern-web-guidance
 googlechrome/modern-web-guidance@chrome-extensions
-aj-geddes/useful-ai-prompts@css-architecture
-kadajett/agent-nestjs-skills@nestjs-best-practices
-fallow-rs/fallow-skills@fallow
 
 # meta / style
+pin vercel-labs/skills 57217cf86ba38148a57af9e90d14a4c049558330
 vercel-labs/skills@find-skills
+pin juliusbrussee/caveman b89752f6bca5a26bfde8b019813554241800ca99
 juliusbrussee/caveman@caveman

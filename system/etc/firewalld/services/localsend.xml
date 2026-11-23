@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- LocalSend (AirDrop-like file transfer on the LAN). Installed by
-     ./install.sh system, which also enables it in firewalld's default zone.
+     ./install.sh system, which also enables it in firewalld's "home" zone
+     (not the default "public" one: trusted networks only).
      Port 53317: HTTP transfers (TCP) + discovery via UDP multicast
      224.0.0.167. https://github.com/localsend/protocol -->
 <service>

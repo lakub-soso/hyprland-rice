@@ -233,6 +233,26 @@ solaar                     # Logi Options+ (Logitech devices)
 # --- AI ---
 ollama-cuda                # Ollama, NVIDIA GPU build
 
+# --- Agentic coding (CLI tools Claude Code / Codex use; MCP servers: ./install.sh mcp) ---
+github-cli                 # gh: PRs, issues, CI logs, API — needs `gh auth login` once
+ast-grep                   # sg: structural (syntax-tree) search & rewrite
+shellcheck                 # lint install.sh and the scripts
+uv                         # Python envs/tools (config/hypr/scripts/*.py)
+just                       # project task runner (`just test`, `just lint`)
+difftastic                 # difft: syntax-aware diffs, for reviewing agent changes
+lua-language-server        # Lua LSP; .luarc.json loads Hyprland's hl.* API stubs
+stylua                     # Lua formatter
+npm                        # system node/npx: MCP servers start outside a shell (no nvm on PATH)
+chromium                   # browser driven by the Playwright + Chrome DevTools MCP servers
+typescript-language-server # for the typescript-lsp Claude Code plugin (./install.sh plugins)
+pyright                    # for the pyright-lsp Claude Code plugin
+gitleaks                   # secret scanner, run on every commit (.pre-commit-config.yaml)
+pre-commit                 # git hook runner: .pre-commit-config.yaml (enabled by ./install.sh dev)
+ruff                       # Python linter + formatter
+prettier                   # JS/TS/CSS/JSON/YAML formatter
+hyperfine                  # command benchmarking
+tokei                      # lines of code per language (quick repo overview)
+
 # --- No Linux version / not needed (kept here for the record) ---
 # DeepL               — no Linux app; use deepl.com
 # ChatGPT             — no official Linux app; use chatgpt.com

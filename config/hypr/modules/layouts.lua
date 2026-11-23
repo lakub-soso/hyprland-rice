@@ -23,7 +23,7 @@
 -- See https://wiki.hypr.land/configuring/layouts/dwindle-layout/ for more
 hl.config({
     dwindle = {
-        preserve_split = true, -- You probably want this
+        preserve_split = true,
     },
 })
 

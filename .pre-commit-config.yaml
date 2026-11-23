@@ -1,0 +1,16 @@
+# Git hooks for this repo, run on every commit.
+# Enabled by ./install.sh dev (pre-commit install). Run by hand: pre-commit run -a
+# Only local hooks with system tools from pacman.txt: nothing is downloaded.
+repos:
+    - repo: local
+      hooks:
+          - id: gitleaks
+            name: gitleaks (secrets in staged changes)
+            entry: gitleaks git --pre-commit --staged --redact --no-banner
+            language: system
+            pass_filenames: false
+          - id: shellcheck
+            name: shellcheck (errors only)
+            entry: shellcheck --severity=error
+            language: system
+            types: [shell]

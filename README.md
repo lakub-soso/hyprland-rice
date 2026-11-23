@@ -38,6 +38,7 @@ packages/
   hardware.txt   machine-specific (CPU ucode, GPU driver, fs tools) — opt-in
   skills.txt     agent skills from skills.sh for Claude Code + Codex (`./install.sh ai`)
 install.sh       bootstrap / maintenance script
+.pre-commit-config.yaml   git hooks: gitleaks + shellcheck (`./install.sh dev` enables)
 ```
 
 ## Fresh machine
@@ -65,6 +66,25 @@ Use `DRY_RUN=1 ./install.sh <cmd>` to preview any step.
   aren't in a list yet, and add them.
 - **Undo:** `./install.sh unlink` removes the symlinks; originals replaced by
   `link` are kept in `~/.config/.rice-backup-<timestamp>/`.
+
+## DNS
+
+All lookups go to Cloudflare (1.1.1.1) over TLS via systemd-resolved, set up
+by `./install.sh system` (`system/etc/systemd/resolved.conf.d/`,
+`system/etc/NetworkManager/conf.d/10-dns.conf`).
+
+- **Check:** `resolvectl status` should list `+DNSOverTLS` and the Cloudflare
+  servers; https://one.one.one.one/help should say "Using DNS over TLS: Yes".
+- **Captive-portal Wi-Fi** (hotel, train login page) can't load with strict TLS.
+  Allow plain DNS until the next reboot (`/run` is cleared on boot):
+  ```sh
+  sudo mkdir -p /run/systemd/resolved.conf.d
+  printf '[Resolve]\nDNSOverTLS=opportunistic\n' | sudo tee /run/systemd/resolved.conf.d/90-portal.conf
+  sudo systemctl restart systemd-resolved
+  ```
+  Undo sooner: `sudo rm /run/systemd/resolved.conf.d/90-portal.conf && sudo systemctl restart systemd-resolved`.
+- **Mullvad VPN** sets its own DNS while connected (inside the tunnel), which
+  takes over from Cloudflare until you disconnect.
 
 ## Startup apps
 

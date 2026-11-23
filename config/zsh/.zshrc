@@ -40,7 +40,7 @@ zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 # --- keybindings -------------------------------------------------------------
 bindkey '^p' history-search-backward
 bindkey '^n' history-search-forward
-bindkey '^[[1;3C' forward-word     # Alt+→   (was "forward-wrod", a typo)
+bindkey '^[[1;3C' forward-word     # Alt+→
 bindkey '^[[1;3D' backward-word    # Alt+←
 bindkey '^[[1;5C' forward-word     # Ctrl+→
 bindkey '^[[1;5D' backward-word    # Ctrl+←
@@ -71,8 +71,7 @@ export NVM_DIR="$XDG_CONFIG_HOME/nvm"
 # which would hang shell startup (completion below runs `ng`).
 export NG_CLI_ANALYTICS=false
 # Completion script cached — running `ng` costs ~0.5 s of Node startup per
-# shell. Regenerated when missing or older than the ng install. (The original
-# also errored on every start when ng wasn't installed.)
+# shell. Regenerated when missing or older than the ng install.
 if command -v ng >/dev/null; then
     _ng_comp="$XDG_CACHE_HOME/zsh/ng-completion.zsh"
     if [[ ! -s $_ng_comp || ${commands[ng]:A} -nt $_ng_comp ]]; then

@@ -12,7 +12,9 @@
 #   ./install.sh defaults     # default apps (DEFAULT_APPS: mpv, Gwenview, Dolphin, Kate…)
 #   ./install.sh ide          # Catppuccin for JetBrains IDEs, VS Code, DBeaver (merged into existing settings)
 #   ./install.sh dev          # nvm + Node LTS + npm globals (bun comes from pacman.txt)
-#   ./install.sh ai           # Claude Code + Codex + rtk (native installers) + agent skills (packages/skills.txt)
+#   ./install.sh ai           # Claude Code + Codex + rtk (native installers) + agent skills (packages/skills.txt) + MCP servers
+#   ./install.sh mcp          # MCP servers (Context7, Playwright, Chrome DevTools, Angular) for Claude Code + Codex
+#   ./install.sh plugins      # Claude Code plugins from the official marketplace (LSPs, security-guidance, …)
 #   ./install.sh dirs         # create ~/Pictures, ~/Videos, … (xdg-user-dirs)
 #   ./install.sh system       # copy system/ into / with sudo (e.g. SDDM theme)
 #   ./install.sh theme        # apply dark-mode gsettings (dconf)
@@ -30,8 +32,6 @@ KDE_SCHEME="CatppuccinMacchiatoMauve"
 ICON_THEME="Papirus-Dark"
 CURSOR_THEME="catppuccin-macchiato-mauve-cursors"   # from catppuccin-cursors-macchiato
 GTK_THEME="catppuccin-macchiato-mauve-standard+default"   # from catppuccin-gtk-theme-macchiato
-# Default apps: "<desktop file>:<MIME prefixes>" — every type the app's .desktop
-# file declares under those prefixes (./install.sh defaults)
 # Default apps (./install.sh defaults). "<desktop file>:<specs>", applied in
 # order — later entries win. Each spec is:
 #   *        every type the app's .desktop file declares
@@ -61,7 +61,7 @@ DEFAULT_APPS=(
     "org.gnome.Calendar.desktop:text/calendar"
     "org.qbittorrent.qBittorrent.desktop:application/x-bittorrent x-scheme-handler/magnet"
 )
-NPM_GLOBALS=(@angular/cli @nestjs/cli azurite)   # installed by `./install.sh dev`
+NPM_GLOBALS=(@angular/cli @nestjs/cli azurite ccusage)   # installed by `./install.sh dev`
 FOLDER_COLOR="cat-macchiato-mauve"   # from papirus-folders-catppuccin-git
 DRY_RUN="${DRY_RUN:-0}"
 
@@ -69,7 +69,6 @@ log()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m!!\033[0m %s\n' "$*" >&2; }
 run()  { if [[ $DRY_RUN == 1 ]]; then echo "  [dry] $*"; else "$@"; fi; }
 
-# Read a package list, stripping comments and blank lines.
 read_list() { sed -e 's/#.*//' -e 's/[[:space:]]*$//' -e '/^$/d' "$1"; }
 
 ensure_yay() {
@@ -146,7 +145,6 @@ cmd_packages() {
 
     install_davinci
 
-    # Flatpaks (system-wide, from Flathub). flatpak itself comes from pacman.txt.
     mapfile -t flatpaks < <(read_list "$REPO/packages/flatpak.txt")
     if ((${#flatpaks[@]})); then
         if ! command -v flatpak >/dev/null && [[ $DRY_RUN != 1 ]]; then
@@ -177,7 +175,7 @@ cmd_link() {
             rel="${src#"$src_root"/}"
             dst="$dst_root/$rel"
             if [[ -L $dst && $(readlink -f "$dst") == "$(readlink -f "$src")" ]]; then
-                continue  # already linked
+                continue
             fi
             if [[ -e $dst || -L $dst ]]; then
                 log "Backing up $dst -> $backup_dir/$rel"
@@ -240,31 +238,75 @@ cmd_system() {
 
     ensure_locales
     ensure_firewall_services
+    ensure_dns
+}
+
+# DNS through systemd-resolved (config: system/etc/systemd/resolved.conf.d/,
+# system/etc/NetworkManager/conf.d/10-dns.conf, copied above).
+# /etc/resolv.conf must point at resolved's stub, or glibc keeps asking
+# whatever NetworkManager last wrote there.
+RESOLV_STUB="/run/systemd/resolve/stub-resolv.conf"
+ensure_dns() {
+    local changed=0
+    if ! systemctl is-enabled --quiet systemd-resolved 2>/dev/null \
+        || ! systemctl is-active --quiet systemd-resolved; then
+        log "DNS: enabling systemd-resolved (needs sudo)"
+        run sudo systemctl enable --now systemd-resolved.service
+        changed=1
+    else
+        run sudo systemctl reload-or-restart systemd-resolved.service
+    fi
+    if [[ $(readlink /etc/resolv.conf) != "$RESOLV_STUB" ]]; then
+        log "DNS: pointing /etc/resolv.conf at resolved (needs sudo; old file → /etc/resolv.conf.rice-bak)"
+        [[ -e /etc/resolv.conf && ! -L /etc/resolv.conf ]] && run sudo cp -a /etc/resolv.conf /etc/resolv.conf.rice-bak
+        run sudo ln -sf "$RESOLV_STUB" /etc/resolv.conf
+        changed=1
+    fi
+    if ((changed)); then
+        # Wi-Fi drops for a few seconds while NetworkManager restarts
+        log "DNS: restarting NetworkManager (needs sudo)"
+        run sudo systemctl restart NetworkManager.service
+    fi
 }
 
 # Enable every firewalld service the repo ships (system/etc/firewalld/services/
-# *.xml, e.g. LocalSend, VTube Studio) in the default zone, permanently.
+# *.xml, e.g. LocalSend, VTube Studio) permanently in FIREWALL_ZONE only — NOT
+# the default zone. The default zone is "public", which is what any new Wi-Fi
+# lands in, and these ports shouldn't be open there.
+# Trusted networks are moved into FIREWALL_ZONE by the user:
+#   nmcli connection modify "<wifi name>" connection.zone home
+# Earlier versions opened the services in the default zone; that is undone.
 # Reload first so firewalld sees newly copied definitions. Skipped if
 # firewalld isn't running.
+FIREWALL_ZONE="home"
 ensure_firewall_services() {
-    local dir="$REPO/system/etc/firewalld/services" f svc zone changed=0
+    local dir="$REPO/system/etc/firewalld/services" f svc default changed=0
     compgen -G "$dir/*.xml" >/dev/null || return 0
     if ! firewall-cmd --state >/dev/null 2>&1; then
         warn "firewalld not running — skipping firewall services"
         return 0
     fi
     run sudo firewall-cmd --reload >/dev/null
-    zone="$(firewall-cmd --get-default-zone)"
+    default="$(firewall-cmd --get-default-zone)"
     for f in "$dir"/*.xml; do
         svc="$(basename "$f" .xml)"
-        if sudo firewall-cmd --permanent --zone="$zone" --query-service="$svc" >/dev/null 2>&1; then
-            continue
+        if ! sudo firewall-cmd --permanent --zone="$FIREWALL_ZONE" --query-service="$svc" >/dev/null 2>&1; then
+            log "Firewall: allowing $svc in zone $FIREWALL_ZONE (needs sudo)"
+            run sudo firewall-cmd --permanent --zone="$FIREWALL_ZONE" --add-service="$svc" >/dev/null
+            changed=1
         fi
-        log "Firewall: allowing $svc in zone $zone (needs sudo)"
-        run sudo firewall-cmd --permanent --zone="$zone" --add-service="$svc" >/dev/null
-        changed=1
+        if [[ $default != "$FIREWALL_ZONE" ]] \
+            && sudo firewall-cmd --permanent --zone="$default" --query-service="$svc" >/dev/null 2>&1; then
+            log "Firewall: closing $svc in default zone $default (needs sudo)"
+            run sudo firewall-cmd --permanent --zone="$default" --remove-service="$svc" >/dev/null
+            changed=1
+        fi
     done
-    if ((changed)); then run sudo firewall-cmd --reload >/dev/null; fi
+    if ((changed)); then
+        run sudo firewall-cmd --reload >/dev/null
+        log "LAN services are open only in zone $FIREWALL_ZONE. Put trusted networks in it:"
+        log "  nmcli connection modify \"<wifi name>\" connection.zone $FIREWALL_ZONE"
+    fi
 }
 
 # Generate every locale named in system/etc/locale.conf (e.g. en_GB.UTF-8 for
@@ -338,6 +380,11 @@ cmd_dev() {
         for pkg in "$@"; do npm ls -g --depth=0 "$pkg" >/dev/null 2>&1 || missing+=("$pkg"); done
         if ((${#missing[@]})); then npm install -g "${missing[@]}"; else echo "npm globals already installed"; fi
     ' _ "${NPM_GLOBALS[@]}" || warn "Node setup failed"
+    if command -v pre-commit >/dev/null; then
+        (cd "$REPO" && run pre-commit install >/dev/null) && log "pre-commit hooks enabled for this repo"
+    else
+        warn "pre-commit not installed (pacman.txt) — skipping git hooks"
+    fi
 }
 
 # Default apps via xdg-mime (writes ~/.config/mimeapps.list). That file is
@@ -378,7 +425,7 @@ cmd_defaults() {
 }
 
 # JetBrains IDEs (Toolbox), VS Code, DBeaver, Zed, GIMP (+ Photoshop keys/layout), Inkscape (+ Illustrator keys), Obsidian, Thunderbird: official Catppuccin plugins/extensions +
-# Macchiato themes, merged into existing settings. See the two scripts.
+# Macchiato themes, merged into existing settings.
 cmd_ide() {
     if [[ $DRY_RUN == 1 ]]; then echo "  [dry] jetbrains-catppuccin.py"; return; fi
     log "JetBrains IDEs: Catppuccin Macchiato"
@@ -625,17 +672,25 @@ cmd_snapshots() {
 # skills.sh CLI, globally into ~/.agents/skills and linked into both agents
 # (needs node — run ./install.sh dev first). Safe to re-run.
 SKILL_AGENTS=(claude-code codex)
-AGENT_INSTALLERS=("claude|https://claude.ai/install.sh|bash"
-                  "codex|https://chatgpt.com/codex/install.sh|sh"
-                  "rtk|https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh|sh")
+# cmd|installer url|shell|sha256 of the installer script (optional)
+# Claude Code and Codex: the vendors' own installers on their own domains; they
+# change often (so no script hash) and verify the binary they download.
+# rtk: a third-party repo, so the installer is pinned to a release tag, its
+# hash is checked, and RTK_VERSION makes it fetch that same release (its
+# binary is then checksum-verified by the script). To bump: change RTK_VERSION,
+# read the new install.sh, then update the hash (sha256sum).
+RTK_VERSION="v1.2.1"
+AGENT_INSTALLERS=("claude|https://claude.ai/install.sh|bash|"
+                  "codex|https://chatgpt.com/codex/install.sh|sh|"
+                  "rtk|https://raw.githubusercontent.com/rtk-ai/rtk/refs/tags/$RTK_VERSION/install.sh|sh|85ae798116fa0dda42a627333b36903b71291785c7395ad3634f8419f7adaeb5")
 # rtk (rtk-ai/rtk): compresses command output (git, tests, builds…) before the
 # agent reads it. `rtk init -g` adds a shell-command hook to each agent's
 # global config; `rtk gain` shows the savings. Re-run the installer to update.
 RTK_INIT=("" "--codex")   # Claude Code, Codex
 install_agent_clis() {
-    local entry cmd url shell tmp
+    local entry cmd url shell sha tmp
     for entry in "${AGENT_INSTALLERS[@]}"; do
-        IFS='|' read -r cmd url shell <<<"$entry"
+        IFS='|' read -r cmd url shell sha <<<"$entry"
         if command -v "$cmd" >/dev/null || [[ -x $HOME/.local/bin/$cmd ]]; then
             log "$cmd already installed (updates itself)"; continue
         fi
@@ -643,7 +698,12 @@ install_agent_clis() {
         if [[ $DRY_RUN == 1 ]]; then echo "  [dry] curl -fsSL $url | $shell"; continue; fi
         tmp="$(mktemp)"
         if curl -fsSL "$url" -o "$tmp"; then
-            CODEX_NON_INTERACTIVE=1 "$shell" "$tmp" </dev/null || warn "$cmd installer failed"
+            if [[ -n $sha ]] && ! sha256sum --quiet -c <<<"$sha  $tmp" >/dev/null 2>&1; then
+                warn "$cmd installer doesn't match its pinned sha256 — not running it ($url)"
+            else
+                CODEX_NON_INTERACTIVE=1 RTK_VERSION="$RTK_VERSION" "$shell" "$tmp" </dev/null \
+                    || warn "$cmd installer failed"
+            fi
         else
             warn "couldn't download $url"
         fi
@@ -659,26 +719,110 @@ install_agent_clis() {
         done
     fi
 }
+# MCP servers for both agents, user-wide. Each runs as you with your files and
+# network, so only vendor-owned servers, each pinned to an exact npm version
+# (bump: npm view <pkg> version, read its changelog, edit here, re-run).
+# Format: name|claude http url (optional)|stdio command
+# Context7 goes over HTTP for Claude Code; Codex starts an OAuth sign-in for
+# that URL, so it runs the local server instead (no account needed either way).
+# The browser servers drive the system chromium (pacman.txt) with an
+# in-memory profile (--isolated): no cookies/logins kept between sessions.
+# Registering doesn't need the agents to be logged in (it only writes
+# ~/.claude.json and ~/.codex/config.toml). Re-running replaces the entries.
+CHROMIUM="/usr/bin/chromium"
+MCP_SERVERS=(
+    "context7|https://mcp.context7.com/mcp|npx -y @upstash/context7-mcp@4.7.3"
+    "playwright||npx -y @playwright/mcp@0.0.86 --executable-path $CHROMIUM --isolated"
+    "chrome-devtools||npx -y chrome-devtools-mcp@1.13.0 --executablePath $CHROMIUM --isolated"
+    "angular||npx -y @angular/cli@22.3.0 mcp"
+)
+cmd_mcp() {
+    local entry name url cmdline have_claude=0 have_codex=0
+    local -a argv
+    command -v claude >/dev/null && have_claude=1
+    command -v codex  >/dev/null && have_codex=1
+    if ((!have_claude && !have_codex)); then
+        warn "neither claude nor codex installed — run ./install.sh ai first"; return 0
+    fi
+    command -v npx >/dev/null || warn "npx not on PATH — install npm (pacman.txt) or the stdio servers won't start"
+    [[ -x $CHROMIUM ]] || warn "$CHROMIUM missing — Playwright/Chrome DevTools servers need chromium (pacman.txt)"
+    for entry in "${MCP_SERVERS[@]}"; do
+        IFS='|' read -r name url cmdline <<<"$entry"
+        read -r -a argv <<<"$cmdline"
+        if ((have_claude)); then
+            log "MCP (Claude Code): $name"
+            run claude mcp remove -s user "$name" >/dev/null 2>&1 || true
+            if [[ -n $url ]]; then
+                run claude mcp add -s user --transport http "$name" "$url" || warn "claude: adding $name failed"
+            else
+                run claude mcp add -s user "$name" -- "${argv[@]}" || warn "claude: adding $name failed"
+            fi
+        fi
+        if ((have_codex)); then
+            log "MCP (Codex): $name"
+            run codex mcp remove "$name" >/dev/null 2>&1 || true
+            run codex mcp add "$name" -- "${argv[@]}" || warn "codex: adding $name failed"
+        fi
+    done
+}
+
+# Claude only: Codex has no plugins. The *-lsp plugins need their servers from
+# pacman.txt. security-guidance's LLM reviews run on your Claude account
+# (switch off: ENABLE_STOP_REVIEW=0 / ENABLE_CODE_SECURITY_REVIEW=0) and its
+# first session builds a venv in ~/.claude/security/.
+# Plugins can't be commit-pinned: review before `claude plugin update`.
+CLAUDE_MARKETPLACE="claude-plugins-official"
+CLAUDE_PLUGINS=(typescript-lsp lua-lsp pyright-lsp security-guidance claude-code-setup frontend-design)
+cmd_plugins() {
+    command -v claude >/dev/null || { warn "claude not installed — run ./install.sh ai first"; return 0; }
+    local installed p
+    claude plugin marketplace list 2>/dev/null | grep -q "$CLAUDE_MARKETPLACE" \
+        || run claude plugin marketplace add anthropics/claude-plugins-official \
+        || warn "couldn't add the $CLAUDE_MARKETPLACE marketplace"
+    installed="$(claude plugin list 2>/dev/null)"
+    for p in "${CLAUDE_PLUGINS[@]}"; do
+        if grep -qF "$p@$CLAUDE_MARKETPLACE" <<<"$installed"; then
+            log "plugin $p already installed"; continue
+        fi
+        log "Installing Claude Code plugin $p"
+        run claude plugin install "$p@$CLAUDE_MARKETPLACE" -s user || warn "plugin $p failed"
+    done
+}
+
 cmd_ai() {
     install_agent_clis
+    cmd_mcp
+    cmd_plugins
     local nvm_dir="${XDG_CONFIG_HOME:-$HOME/.config}/nvm"
     [[ -s $nvm_dir/nvm.sh ]] || { warn "nvm/node missing — run ./install.sh dev first, then ./install.sh ai for skills"; return; }
-    # group "owner/repo@skill" lines by repo → one `skills add` per repo
-    local -A by_repo=()
-    local line repo
+    # group "owner/repo@skill" lines by repo → one `skills add` per repo;
+    # "pin owner/repo <commit>" lines fix the commit it's installed from
+    local -A by_repo=() pins=()
+    local line repo src
     while IFS= read -r line; do
+        if [[ $line == pin\ * ]]; then
+            read -r _ repo src <<<"$line"
+            pins[$repo]="$src"
+            continue
+        fi
         repo="${line%@*}"
         by_repo[$repo]+=" -s ${line##*@}"
     done < <(read_list "$REPO/packages/skills.txt")
     local agents=(); local a; for a in "${SKILL_AGENTS[@]}"; do agents+=(-a "$a"); done
     for repo in "${!by_repo[@]}"; do
-        log "skills: $repo →${by_repo[$repo]//-s /}"
+        src="$repo"
+        if [[ -n ${pins[$repo]:-} ]]; then
+            src="$repo@${pins[$repo]}"
+        else
+            warn "skills: $repo isn't pinned (add 'pin $repo <commit>' to packages/skills.txt) — installing its latest commit"
+        fi
+        log "skills: $src →${by_repo[$repo]//-s /}"
         # shellcheck disable=SC2086  # word-split the -s flags
         if [[ $DRY_RUN == 1 ]]; then
-            echo "  [dry] npx -y skills add $repo -g ${agents[*]}${by_repo[$repo]} -y"
+            echo "  [dry] npx -y skills add $src -g ${agents[*]}${by_repo[$repo]} -y"
         else
             NVM_DIR="$nvm_dir" DISABLE_TELEMETRY=1 bash -c '. "$NVM_DIR/nvm.sh" >/dev/null && npx -y skills add "$@"' \
-                _ "$repo" -g "${agents[@]}" ${by_repo[$repo]} -y </dev/null \
+                _ "$src" -g "${agents[@]}" ${by_repo[$repo]} -y </dev/null \
                 || warn "skills: $repo failed"
         fi
     done
@@ -717,6 +861,8 @@ main() {
         shell)    cmd_shell ;;
         dev)      cmd_dev ;;
         ai)       cmd_ai ;;
+        mcp)      cmd_mcp ;;
+        plugins)  cmd_plugins ;;
         defaults) cmd_defaults ;;
         ide)      cmd_ide ;;
         dirs)     cmd_dirs ;;
