@@ -31,6 +31,9 @@ config/starship.toml     prompt: Catppuccin Macchiato powerline (p10k-like)
 system/          mirrors / — COPIED (sudo) by `./install.sh system`, since
                  system daemons can't read $HOME. Re-run after editing.
   etc/sddm.conf.d/10-theme.conf   SDDM login theme (Catppuccin Macchiato mauve)
+  etc/firefox/policies/policies.json   installs + selects the Catppuccin Firefox
+                 theme (usr/share/hyprland-rice/firefox/*.xpi: official
+                 catppuccin/firefox release, Mozilla-signed, vendored so it's pinned)
 packages/
   pacman.txt     official-repo packages — RICE section, then APPS by category
   aur.txt        AUR packages (installed via yay), same layout

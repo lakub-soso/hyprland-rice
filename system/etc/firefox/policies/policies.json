@@ -1,0 +1,16 @@
+{
+  "policies": {
+    "ExtensionSettings": {
+      "{998d0435-a079-4dcc-ad24-7333b3463bca}": {
+        "installation_mode": "normal_installed",
+        "install_url": "file:///usr/share/hyprland-rice/firefox/catppuccin_macchiato_mauve.xpi"
+      }
+    },
+    "Preferences": {
+      "extensions.activeThemeID": {
+        "Value": "{998d0435-a079-4dcc-ad24-7333b3463bca}",
+        "Status": "user"
+      }
+    }
+  }
+}
